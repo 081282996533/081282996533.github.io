@@ -22,22 +22,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .gradient-border {
-            position: relative;
-            border-radius: 1rem;
-            background: rgba(15, 23, 42, 0.9);
-        }
-
-        .gradient-border::before {
-            content: "";
-            position: absolute;
-            inset: -1px;
-            z-index: -1;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
-            border-radius: 1.1rem;
-            opacity: 0.5;
-        }
-
         .loader {
             border: 2px solid #1e293b;
             border-top: 2px solid #3b82f6;
@@ -65,45 +49,43 @@
     <!-- Header -->
     <header class="p-4 flex justify-between items-center sticky top-0 z-50 glass-card">
         <div class="flex items-center gap-2">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">M</div>
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">M</div>
             <div>
                 <h1 class="text-lg font-bold leading-none">Studio <span class="text-blue-400">MHP</span></h1>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Intelligence System</p>
             </div>
         </div>
-        <div id="connection-status" class="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">
-            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-            <span class="text-[10px] font-medium text-blue-400">READY</span>
+        <div id="status-pill" class="flex items-center gap-2 bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
+            <span id="status-dot" class="w-2 h-2 bg-red-500 rounded-full"></span>
+            <span id="status-text" class="text-[10px] font-medium text-red-400">OFFLINE</span>
         </div>
     </header>
 
-    <!-- Main Container -->
     <main id="app-viewport" class="p-4 space-y-6">
-        <!-- Content injected here via script -->
+        <!-- Konten tab akan muncul di sini -->
     </main>
 
-    <!-- Navigation -->
+    <!-- Navigasi -->
     <nav class="fixed bottom-0 left-0 right-0 glass-card p-3 flex justify-around items-center border-t border-white/5 z-50">
-        <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-chat">
+        <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-chat">
             <i data-lucide="bot" class="w-6 h-6"></i>
             <span class="text-[10px]">Asisten</span>
         </button>
-        <button onclick="switchTab('image')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-image">
+        <button onclick="switchTab('image')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-image">
             <i data-lucide="sparkles" class="w-6 h-6"></i>
             <span class="text-[10px]">Edit AI</span>
         </button>
-        <button onclick="switchTab('video')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-video">
+        <button onclick="switchTab('video')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-video">
             <i data-lucide="clapperboard" class="w-6 h-6"></i>
             <span class="text-[10px]">AI Video</span>
         </button>
     </nav>
 
-    <!-- Firebase System Module -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBTtQzwsHRgGWt7zcDABX_F8nErqtsRWMU",
             authDomain: "portrait-lab-428308.firebaseapp.com",
@@ -113,17 +95,53 @@
             appId: "1:103625933953:android:4e929a8e574ab76308b980"
         };
 
-        try {
-            const app = initializeApp(firebaseConfig);
-            window.db = getFirestore(app);
-            console.log("MHP SYSTEM ONLINE: Pintu Belakang Terbuka!");
-        } catch (err) {
-            console.error("Firebase Gagal: ", err);
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let geminiKey = "";
+
+        // Fungsi Autentikasi & Ambil Key
+        const startSystem = async () => {
+            try {
+                await signInAnonymously(auth);
+                
+                // Ambil API Key dari Firestore (Ganti Path ini sesuai lokasi key kamu di DB)
+                // Default mencoba mencari di: artifacts/default-app-id/public/data/config
+                const docRef = doc(db, "artifacts", "default-app-id", "public", "data", "config");
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    geminiKey = docSnap.data().geminiApiKey;
+                    window.activeKey = geminiKey;
+                    updateUIStatus(true);
+                } else {
+                    console.error("API Key tidak ditemukan di Database.");
+                    // Fallback: Kamu bisa ganti "" di bawah ini dengan API Key aslimu jika ingin hardcode
+                    window.activeKey = ""; 
+                    if(window.activeKey) updateUIStatus(true);
+                }
+            } catch (err) {
+                console.error("System Error:", err);
+            }
+        };
+
+        const updateUIStatus = (online) => {
+            const dot = document.getElementById('status-dot');
+            const pill = document.getElementById('status-pill');
+            const text = document.getElementById('status-text');
+            if(online) {
+                dot.className = "w-2 h-2 bg-blue-500 rounded-full animate-pulse";
+                pill.className = "flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20";
+                text.innerText = "READY";
+                text.className = "text-[10px] font-medium text-blue-400";
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => { if (user) startSystem(); });
     </script>
 
     <script>
-        const apiKey = ""; // Otomatis disuntikkan runtime
         let currentTab = 'chat';
 
         const views = {
@@ -131,7 +149,7 @@
                 <div class="flex flex-col h-[72vh]">
                     <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
                         <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm leading-relaxed border border-white/5">
-                            Halo Boss! MHP AI System sudah aktif. Mau bikin konten AI apa hari ini?
+                            Halo Boss! MHP System sudah aktif. Mau bikin konten AI apa hari ini?
                         </div>
                     </div>
                     <div class="mt-2 flex gap-2 p-2 glass-card rounded-2xl items-center">
@@ -144,9 +162,9 @@
             `,
             image: `
                 <div class="space-y-4 animate-in fade-in duration-500">
-                    <div class="gradient-border p-6 text-center border-dashed border-2 border-slate-700">
+                    <div class="glass-card p-6 text-center border-dashed border-2 border-slate-700 rounded-2xl">
                         <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-3 text-blue-500"></i>
-                        <p class="text-sm font-medium">Unggah Foto (Gemini Edit)</p>
+                        <p class="text-sm font-medium">Unggah Foto</p>
                         <input type="file" id="file-input" class="hidden" onchange="previewImage(event)">
                         <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-white/5 px-6 py-2 rounded-full text-xs border border-white/10">Pilih File</button>
                     </div>
@@ -155,20 +173,15 @@
                     </div>
                     <div class="glass-card p-4 rounded-2xl space-y-3">
                         <textarea id="ai-prompt" placeholder="Contoh: Jadikan anime cyberpunk..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-28 outline-none"></textarea>
-                        <button onclick="processImageAI()" id="proc-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 rounded-xl font-bold text-sm shadow-xl">PROSES AI</button>
-                    </div>
-                    <div id="result-container" class="hidden glass-card p-3 rounded-2xl border-2 border-blue-500/20">
-                        <img id="img-result" class="w-full rounded-xl">
+                        <button onclick="processImageAI()" id="proc-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 rounded-xl font-bold text-sm">PROSES AI</button>
                     </div>
                 </div>
             `,
             video: `
-                <div class="space-y-4">
-                    <div class="glass-card p-5 rounded-2xl space-y-4 text-center">
-                        <i data-lucide="clapperboard" class="w-12 h-12 mx-auto text-purple-500"></i>
-                        <textarea id="vid-prompt" placeholder="Naga terbang di Jakarta..." class="w-full bg-slate-950/50 border border-white/5 rounded-xl p-3 text-sm h-32 outline-none"></textarea>
-                        <button onclick="generateVideo()" class="w-full bg-white text-black py-4 rounded-xl font-black text-sm uppercase shadow-xl">Generate Video</button>
-                    </div>
+                <div class="glass-card p-8 rounded-2xl text-center space-y-4">
+                    <i data-lucide="clapperboard" class="w-16 h-16 mx-auto text-slate-700"></i>
+                    <h2 class="font-bold">AI Video Engine</h2>
+                    <p class="text-xs text-slate-500">Fitur rendering video memerlukan resource GPU tinggi. Sedang dalam tahap sinkronisasi server.</p>
                 </div>
             `
         };
@@ -177,7 +190,13 @@
             const input = document.getElementById('chat-input');
             const chatBox = document.getElementById('chat-box');
             const prompt = input.value.trim();
+            const key = window.activeKey || "";
+
             if (!prompt) return;
+            if (!key) {
+                alert("API Key belum siap. Tunggu status READY.");
+                return;
+            }
 
             chatBox.innerHTML += `<div class="chat-bubble-user p-4 rounded-2xl max-w-[85%] ml-auto text-sm shadow-xl">${prompt}</div>`;
             input.value = '';
@@ -187,18 +206,21 @@
             chatBox.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3 border border-white/5"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400">MEMIKIRKAN...</span></div>`;
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
                 const data = await response.json();
-                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, server sedang sibuk.";
+                
+                if(data.error) throw new Error(data.error.message);
+
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, respon kosong.";
                 document.getElementById(loadingId).remove();
                 chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed border border-white/10 shadow-sm">${aiResponse.replace(/\n/g, '<br>')}</div>`;
             } catch (err) {
-                document.getElementById(loadingId).innerHTML = `<span class="text-red-400 text-[10px]">Error: Koneksi Terputus</span>`;
+                document.getElementById(loadingId).innerHTML = `<span class="text-red-400 text-[10px]">Error: ${err.message}</span>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -211,7 +233,6 @@
             activeNav.classList.remove('opacity-50');
             activeNav.classList.add('text-blue-500');
             
-            // Re-inisialisasi ikon Lucide
             lucide.createIcons();
             
             if(tab === 'chat') {
@@ -232,19 +253,6 @@
                 reader.readAsDataURL(file);
             }
         }
-
-        async function processImageAI() {
-            const btn = document.getElementById('proc-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<div class="loader mx-auto"></div>`;
-            setTimeout(() => {
-                alert("Fitur Image Processing memerlukan API Key Imagen-4 yang aktif.");
-                btn.disabled = false;
-                btn.innerHTML = "PROSES AI";
-            }, 2000);
-        }
-
-        function generateVideo() { alert("Rendering video sedang disiapkan di server MHP."); }
 
         window.onload = () => switchTab('chat');
     </script>
