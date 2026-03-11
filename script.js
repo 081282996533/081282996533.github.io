@@ -1,5 +1,5 @@
 /**
- * MHP Gemini System - Core Logic
+ * MHP Gemini System - Production Logic
  * Author: Super Admin MHP
  */
 
@@ -7,29 +7,13 @@ import { MHP_CONFIG } from './mhp-config.js';
 
 // State Management
 let currentMode = 'CHAT';
-
-// Initialize Elements
 const displayArea = document.getElementById('display');
 const promptInput = document.getElementById('prompt');
 const executeBtn = document.getElementById('execute-btn');
 const navItems = document.querySelectorAll('.nav-item');
 
 /**
- * Mengelola perpindahan mode fitur
- */
-const setAppMode = (mode, element) => {
-    currentMode = mode;
-    
-    // Update UI Navigation
-    navItems.forEach(item => item.classList.remove('active'));
-    element.classList.add('active');
-
-    // System Notification
-    renderMessage('system', `Sistem beralih ke mode: ${mode}`);
-};
-
-/**
- * Merender pesan ke antarmuka pengguna
+ * Merender pesan ke antarmuka pengguna secara bersih
  */
 const renderMessage = (sender, text) => {
     const msgDiv = document.createElement('div');
@@ -40,46 +24,63 @@ const renderMessage = (sender, text) => {
 };
 
 /**
- * Logika pemrosesan perintah AI
+ * Logika Pemrosesan Perintah AI
  */
-const processInquiry = async () => {
+const processAIRequest = async () => {
     const query = promptInput.value.trim();
     if (!query) return;
 
-    // Render User Input
+    // Tampilkan input pengguna
     renderMessage('user', query);
     promptInput.value = '';
 
-    // Simulate Network Latency
-    const loadingId = Date.now();
-    renderMessage('bot', `<span id="load-${loadingId}">Memproses permintaan...</span>`);
+    // Menampilkan indikator pemrosesan
+    const loadingId = `load-${Date.now()}`;
+    const botMsg = document.createElement('div');
+    botMsg.className = 'msg bot';
+    botMsg.innerHTML = `<span id="${loadingId}">Menganalisis permintaan...</span>`;
+    displayArea.appendChild(botMsg);
 
-    setTimeout(() => {
-        const responseElement = document.getElementById(`load-${loadingId}`);
-        let finalResponse = "";
-
-        // Logic Router berdasarkan Mode & Input
+    try {
+        // PROSES LOGIKA BERDASARKAN MODE
+        let responseText = "";
         const inputLower = query.toLowerCase();
 
+        // Router Jawaban Pintar
         if (inputLower.includes("tanggal") || inputLower.includes("hari ini")) {
-            finalResponse = `Hari ini adalah ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
-        } else if (inputLower.includes("dongeng")) {
-            finalResponse = "Di sebuah kerajaan digital, terdapat sistem kuat bernama MHP yang mengelola data dengan presisi tinggi...";
-        } else {
-            finalResponse = `Permintaan Anda untuk mode ${currentMode} telah diterima dan sedang dianalisis oleh server inti.`;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            responseText = `Hari ini adalah ${new Date().toLocaleDateString('id-ID', options)}.`;
+        } 
+        else if (currentMode === 'TXT_VID') {
+            responseText = `Permintaan pembuatan video untuk "${query}" telah masuk ke antrean pemrosesan server MHP. Estimasi selesai: 2-3 menit.`;
+        }
+        else if (inputLower.includes("dongeng")) {
+            responseText = "Di era kejayaan digital, Madu Hitam Perkasa (MHP) menjadi simbol kekuatan inovasi yang tak terhentikan...";
+        }
+        else {
+            responseText = `Perintah Anda dalam mode ${currentMode} sedang diproses. Silakan tunggu konfirmasi selanjutnya.`;
         }
 
-        responseElement.parentElement.innerHTML = finalResponse;
-    }, 1200);
+        // Tampilkan hasil akhir tanpa informasi teknis
+        document.getElementById(loadingId).innerHTML = responseText;
+
+    } catch (error) {
+        document.getElementById(loadingId).innerHTML = "Terjadi gangguan pada koneksi server. Silakan coba kembali.";
+    }
+    
+    displayArea.scrollTop = displayArea.scrollHeight;
 };
 
-// Event Listeners
+// Navigasi Mode
 navItems.forEach(item => {
-    item.addEventListener('click', () => setAppMode(item.getAttribute('data-mode'), item));
+    item.addEventListener('click', () => {
+        navItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentMode = item.getAttribute('data-mode');
+        renderMessage('bot', `Mode <b>${currentMode}</b> diaktifkan.`);
+    });
 });
 
-executeBtn.addEventListener('click', processInquiry);
-
-promptInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') processInquiry();
-});
+// Event Bindings
+executeBtn.addEventListener('click', processAIRequest);
+promptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') processAIRequest(); });
