@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCGen - Generator Kartu Kredit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800">CCGen Pro</h1>
+            <p class="text-slate-500">Generator nomor kartu kredit untuk keperluan testing & edukasi</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Panel Input -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">BIN (6 Digit)</label>
+                        <input type="text" id="bin" placeholder="541275" maxlength="16" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Bulan</label>
+                            <select id="month" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="rnd">Acak</option>
+                                <option value="01">01</option><option value="02">02</option>
+                                <option value="03">03</option><option value="04">04</option>
+                                <option value="05">05</option><option value="06">06</option>
+                                <option value="07">07</option><option value="08">08</option>
+                                <option value="09">09</option><option value="10">10</option>
+                                <option value="11">11</option><option value="12">12</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Tahun</label>
+                            <select id="year" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="rnd">Acak</option>
+                                <option value="2024">2024</option><option value="2025">2025</option>
+                                <option value="2026">2026</option><option value="2027">2027</option>
+                                <option value="2028">2028</option><option value="2029">2029</option>
+                                <option value="2030">2030</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">CVV</label>
+                        <input type="text" id="cvv" placeholder="Acak" maxlength="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Jumlah</label>
+                        <input type="number" id="quantity" value="10" min="1" max="100" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button onclick="generateCC()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-lg shadow-blue-200">
+                        Generate
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Output -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="flex justify-between items-center p-4 border-b border-slate-100">
+                        <span class="font-bold text-slate-700">Hasil</span>
+                        <button onclick="copyToClipboard()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Salin Semua</button>
+                    </div>
+                    <textarea id="output" readonly class="w-full h-80 p-4 font-mono text-sm border-none focus:ring-0 resize-none bg-slate-50" placeholder="Hasil akan muncul di sini..."></textarea>
+                </div>
+                
+                <!-- Feedback Toast -->
+                <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-2 rounded-full text-sm shadow-xl">
+                    Disalin ke clipboard!
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="mt-8 text-center text-xs text-slate-400">
+            <p>Hanya untuk tujuan pengembangan perangkat lunak. Kami tidak mendukung aktivitas ilegal.</p>
+        </div>
+    </div>
+
+    <script>
+        function generateCC() {
+            const binInput = document.getElementById('bin').value.replace(/\s/g, '');
+            const monthInput = document.getElementById('month').value;
+            const yearInput = document.getElementById('year').value;
+            const cvvInput = document.getElementById('cvv').value;
+            const quantity = parseInt(document.getElementById('quantity').value) || 10;
+            const output = document.getElementById('output');
+
+            if (!binInput) {
+                showToast("Masukkan BIN terlebih dahulu");
+                return;
+            }
+
+            let results = [];
+
+            for (let i = 0; i < quantity; i++) {
+                let ccNumber = generateNumber(binInput);
+                let month = monthInput === 'rnd' ? Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0') : monthInput;
+                let year = yearInput === 'rnd' ? (new Date().getFullYear() + Math.floor(Math.random() * 6)).toString() : yearInput;
+                let cvv = cvvInput === '' ? Math.floor(Math.random() * 900 + 100).toString() : cvvInput;
+
+                results.push(`${ccNumber}|${month}|${year}|${cvv}`);
+            }
+
+            output.value = results.join('\n');
+        }
+
+        function generateNumber(bin) {
+            let ccNumber = bin;
+            // Lengkapi sampai 15 digit (digit ke-16 adalah check digit)
+            while (ccNumber.length < 15) {
+                ccNumber += Math.floor(Math.random() * 10);
+            }
+
+            // Hitung Luhn Check Digit
+            let sum = 0;
+            for (let i = 0; i < ccNumber.length; i++) {
+                let digit = parseInt(ccNumber[ccNumber.length - 1 - i]);
+                if (i % 2 === 0) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+            }
+            let checkDigit = (10 - (sum % 10)) % 10;
+            return ccNumber + checkDigit;
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (!output.value) return;
+            
+            output.select();
+            document.execCommand('copy');
+            showToast("Berhasil disalin!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+    </script>
+</body>
+</html>
+
+
