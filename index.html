@@ -2,260 +2,125 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Studio MHP - All-in-One AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MHP STUDIO - ALL-IN-ONE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.1/lucide-react.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #020617;
-            color: #f8fafc;
-            overflow-x: hidden;
-        }
-
-        .glass-card {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .loader {
-            border: 2px solid #1e293b;
-            border-top: 2px solid #3b82f6;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            animation: spin 0.8s linear infinite;
-        }
-
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .chat-bubble-ai { background: rgba(30, 41, 59, 0.5); border-bottom-left-radius: 2px; }
+        .chat-bubble-user { background: linear-gradient(135deg, #2563eb, #7c3aed); border-bottom-right-radius: 2px; }
+        .loader { border: 2px solid #1e293b; border-top: 2px solid #3b82f6; border-radius: 50%; width: 18px; height: 18px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .chat-bubble-ai {
-            background: rgba(30, 41, 59, 0.5);
-            border-bottom-left-radius: 2px;
-        }
-
-        .chat-bubble-user {
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            border-bottom-right-radius: 2px;
-        }
     </style>
 </head>
 <body class="pb-24">
 
-    <!-- Header -->
     <header class="p-4 flex justify-between items-center sticky top-0 z-50 glass-card">
         <div class="flex items-center gap-2">
             <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">M</div>
-            <div>
-                <h1 class="text-lg font-bold leading-none">Studio <span class="text-blue-400">MHP</span></h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Intelligence System</p>
-            </div>
+            <h1 class="text-lg font-bold">Studio <span class="text-blue-400">MHP</span></h1>
         </div>
-        <div id="status-pill" class="flex items-center gap-2 bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
-            <span id="status-dot" class="w-2 h-2 bg-red-500 rounded-full"></span>
-            <span id="status-text" class="text-[10px] font-medium text-red-400">OFFLINE</span>
+        <div class="bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20 flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-medium text-blue-400 uppercase">System Ready</span>
         </div>
     </header>
 
     <main id="app-viewport" class="p-4 space-y-6">
-        <!-- Konten tab akan muncul di sini -->
-    </main>
+        </main>
 
-    <!-- Navigasi -->
     <nav class="fixed bottom-0 left-0 right-0 glass-card p-3 flex justify-around items-center border-t border-white/5 z-50">
-        <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-chat">
-            <i data-lucide="bot" class="w-6 h-6"></i>
-            <span class="text-[10px]">Asisten</span>
-        </button>
-        <button onclick="switchTab('image')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-image">
-            <i data-lucide="sparkles" class="w-6 h-6"></i>
-            <span class="text-[10px]">Edit AI</span>
-        </button>
-        <button onclick="switchTab('video')" class="nav-item flex flex-col items-center gap-1 transition-all opacity-50" id="nav-video">
-            <i data-lucide="clapperboard" class="w-6 h-6"></i>
-            <span class="text-[10px]">AI Video</span>
-        </button>
+        <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 opacity-50" id="nav-chat"><i data-lucide="bot" class="w-6 h-6"></i><span class="text-[10px]">Asisten</span></button>
+        <button onclick="switchTab('image')" class="nav-item flex flex-col items-center gap-1 opacity-50" id="nav-image"><i data-lucide="sparkles" class="w-6 h-6"></i><span class="text-[10px]">Edit AI</span></button>
+        <button onclick="switchTab('video')" class="nav-item flex flex-col items-center gap-1 opacity-50" id="nav-video"><i data-lucide="clapperboard" class="w-6 h-6"></i><span class="text-[10px]">Video AI</span></button>
     </nav>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBTtQzwsHRgGWt7zcDABX_F8nErqtsRWMU",
-            authDomain: "portrait-lab-428308.firebaseapp.com",
-            projectId: "portrait-lab-428308",
-            storageBucket: "portrait-lab-428308.appspot.com",
-            messagingSenderId: "103625933953",
-            appId: "1:103625933953:android:4e929a8e574ab76308b980"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        let geminiKey = "";
-
-        // Fungsi Autentikasi & Ambil Key
-        const startSystem = async () => {
-            try {
-                await signInAnonymously(auth);
-                
-                // Ambil API Key dari Firestore (Ganti Path ini sesuai lokasi key kamu di DB)
-                // Default mencoba mencari di: artifacts/default-app-id/public/data/config
-                const docRef = doc(db, "artifacts", "default-app-id", "public", "data", "config");
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    geminiKey = docSnap.data().geminiApiKey;
-                    window.activeKey = geminiKey;
-                    updateUIStatus(true);
-                } else {
-                    console.error("API Key tidak ditemukan di Database.");
-                    // Fallback: Kamu bisa ganti "" di bawah ini dengan API Key aslimu jika ingin hardcode
-                    window.activeKey = ""; 
-                    if(window.activeKey) updateUIStatus(true);
-                }
-            } catch (err) {
-                console.error("System Error:", err);
-            }
-        };
-
-        const updateUIStatus = (online) => {
-            const dot = document.getElementById('status-dot');
-            const pill = document.getElementById('status-pill');
-            const text = document.getElementById('status-text');
-            if(online) {
-                dot.className = "w-2 h-2 bg-blue-500 rounded-full animate-pulse";
-                pill.className = "flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20";
-                text.innerText = "READY";
-                text.className = "text-[10px] font-medium text-blue-400";
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => { if (user) startSystem(); });
-    </script>
-
     <script>
+        // --- KONFIGURASI PUSAT ---
+        const MHP_KEY = "AIzaSyBTtQzwsHRgGWt7zcDABX_F8nErqtsRWMU"; // Bensin API Master
         let currentTab = 'chat';
 
         const views = {
             chat: `
-                <div class="flex flex-col h-[72vh]">
-                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
-                        <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm leading-relaxed border border-white/5">
-                            Halo Boss! MHP System sudah aktif. Mau bikin konten AI apa hari ini?
-                        </div>
+                <div class="flex flex-col h-[70vh]">
+                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pb-4">
+                        <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm border border-white/5">Halo Super Admin MHP! Sistem Gemini 1.5 Flash aktif. Apa perintah Anda?</div>
                     </div>
-                    <div class="mt-2 flex gap-2 p-2 glass-card rounded-2xl items-center">
+                    <div class="mt-auto flex gap-2 p-2 glass-card rounded-2xl">
                         <input type="text" id="chat-input" placeholder="Tanya sesuatu..." class="flex-1 bg-transparent border-none outline-none px-3 text-sm h-10">
-                        <button onclick="handleChat()" id="send-btn" class="bg-blue-600 hover:bg-blue-500 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                            <i data-lucide="send-horizontal" class="w-5 h-5 text-white"></i>
-                        </button>
+                        <button onclick="processChat()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90"><i data-lucide="send-horizontal" class="w-5 h-5"></i></button>
                     </div>
-                </div>
-            `,
+                </div>`,
             image: `
-                <div class="space-y-4 animate-in fade-in duration-500">
+                <div class="space-y-4">
                     <div class="glass-card p-6 text-center border-dashed border-2 border-slate-700 rounded-2xl">
-                        <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-3 text-blue-500"></i>
-                        <p class="text-sm font-medium">Unggah Foto</p>
+                        <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-2 text-blue-500"></i>
+                        <p class="text-xs">Unggah Foto untuk Edit AI</p>
                         <input type="file" id="file-input" class="hidden" onchange="previewImage(event)">
-                        <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-white/5 px-6 py-2 rounded-full text-xs border border-white/10">Pilih File</button>
+                        <button onclick="document.getElementById('file-input').click()" class="mt-3 bg-white/5 px-4 py-2 rounded-full text-[10px] border border-white/10">Pilih File</button>
                     </div>
-                    <div id="preview-wrapper" class="hidden">
-                        <img id="img-preview" class="w-full rounded-2xl border border-white/10">
-                    </div>
-                    <div class="glass-card p-4 rounded-2xl space-y-3">
-                        <textarea id="ai-prompt" placeholder="Contoh: Jadikan anime cyberpunk..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-28 outline-none"></textarea>
-                        <button onclick="processImageAI()" id="proc-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 rounded-xl font-bold text-sm">PROSES AI</button>
-                    </div>
-                </div>
-            `,
-            video: `
-                <div class="glass-card p-8 rounded-2xl text-center space-y-4">
-                    <i data-lucide="clapperboard" class="w-16 h-16 mx-auto text-slate-700"></i>
-                    <h2 class="font-bold">AI Video Engine</h2>
-                    <p class="text-xs text-slate-500">Fitur rendering video memerlukan resource GPU tinggi. Sedang dalam tahap sinkronisasi server.</p>
-                </div>
-            `
+                    <div id="preview-wrapper" class="hidden"><img id="img-preview" class="w-full rounded-xl border border-white/10"></div>
+                    <textarea id="ai-prompt" placeholder="Instruksi edit (Contoh: Beri efek cyberpunk)..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-24 outline-none"></textarea>
+                    <button onclick="alert('Engine Sedang Sinkronisasi')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-sm">PROSES EDIT</button>
+                </div>`,
+            video: `<div class="p-8 text-center glass-card rounded-2xl"><i data-lucide="clapperboard" class="w-12 h-12 mx-auto text-slate-600 mb-2"></i><p class="text-sm">Video AI Engine memerlukan API khusus. Segera hadir di MHP Studio.</p></div>`
         };
-
-        async function handleChat() {
-            const input = document.getElementById('chat-input');
-            const chatBox = document.getElementById('chat-box');
-            const prompt = input.value.trim();
-            const key = window.activeKey || "";
-
-            if (!prompt) return;
-            if (!key) {
-                alert("API Key belum siap. Tunggu status READY.");
-                return;
-            }
-
-            chatBox.innerHTML += `<div class="chat-bubble-user p-4 rounded-2xl max-w-[85%] ml-auto text-sm shadow-xl">${prompt}</div>`;
-            input.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            const loadingId = 'ai-' + Date.now();
-            chatBox.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3 border border-white/5"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400">MEMIKIRKAN...</span></div>`;
-
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                const data = await response.json();
-                
-                if(data.error) throw new Error(data.error.message);
-
-                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, respon kosong.";
-                document.getElementById(loadingId).remove();
-                chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed border border-white/10 shadow-sm">${aiResponse.replace(/\n/g, '<br>')}</div>`;
-            } catch (err) {
-                document.getElementById(loadingId).innerHTML = `<span class="text-red-400 text-[10px]">Error: ${err.message}</span>`;
-            }
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
 
         function switchTab(tab) {
             currentTab = tab;
             document.getElementById('app-viewport').innerHTML = views[tab];
             document.querySelectorAll('.nav-item').forEach(el => el.classList.add('opacity-50'));
-            const activeNav = document.getElementById(`nav-${tab}`);
-            activeNav.classList.remove('opacity-50');
-            activeNav.classList.add('text-blue-500');
-            
+            document.getElementById(`nav-${tab}`).classList.remove('opacity-50');
             lucide.createIcons();
-            
             if(tab === 'chat') {
-                document.getElementById('chat-input').addEventListener('keypress', (e) => { 
-                    if(e.key === 'Enter') handleChat(); 
-                });
+                document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') processChat(); });
             }
         }
 
-        function previewImage(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    document.getElementById('preview-wrapper').classList.remove('hidden');
-                    document.getElementById('img-preview').src = ev.target.result;
-                };
-                reader.readAsDataURL(file);
+        async function processChat() {
+            const input = document.getElementById('chat-input');
+            const chatBox = document.getElementById('chat-box');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            chatBox.innerHTML += `<div class="chat-bubble-user p-4 rounded-2xl max-w-[85%] ml-auto text-sm shadow-xl">${prompt}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const loadId = 'ai-' + Date.now();
+            chatBox.innerHTML += `<div id="${loadId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400">BERPIKIR...</span></div>`;
+
+            try {
+                // MENGGUNAKAN MODEL YANG VALID (1.5 FLASH)
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MHP_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await res.json();
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Server sibuk atau API Error, ASUUU!";
+                
+                document.getElementById(loadId).remove();
+                chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed border border-white/10">${responseText.replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                document.getElementById(loadId).innerHTML = `<span class="text-red-400 text-[10px]">Error: ${err.message}</span>`;
             }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function previewImage(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('preview-wrapper').classList.remove('hidden');
+                document.getElementById('img-preview').src = ev.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
         }
 
         window.onload = () => switchTab('chat');
     </script>
 </body>
 </html>
-
