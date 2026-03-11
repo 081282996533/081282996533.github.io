@@ -2,38 +2,252 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MHP AI</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Studio MHP - All-in-One AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.1/lucide-react.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .gradient-border {
+            position: relative;
+            border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .gradient-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            z-index: -1;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            border-radius: 1.1rem;
+            opacity: 0.5;
+        }
+
+        .loader {
+            border: 2px solid #1e293b;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .chat-bubble-ai {
+            background: rgba(30, 41, 59, 0.5);
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-bottom-right-radius: 2px;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <div class="logo">MHP AI</div>
-        <div class="badge">ISTIKOMAH</div>
+<body class="pb-24">
+
+    <!-- Header -->
+    <header class="p-4 flex justify-between items-center sticky top-0 z-50 glass-card">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">M</div>
+            <div>
+                <h1 class="text-lg font-bold leading-none">Studio <span class="text-blue-400">MHP</span></h1>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Intelligence System</p>
+            </div>
+        </div>
+        <div id="connection-status" class="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">
+            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-medium text-blue-400">READY</span>
+        </div>
     </header>
 
-    <main id="display">
-        <div class="msg bot">
-             <br>
-         
-        </div>
+    <!-- Main Container -->
+    <main id="app-viewport" class="p-4 space-y-6">
+        <!-- Content injected here via script -->
     </main>
 
-    <div class="input-box">
-        <button class="plus-btn">+</button>
-        <input type="text" id="prompt" placeholder="Tulis imajinasi binalmu...">
-        <button class="send-btn" id="execute-btn">🚀</button>
-    </div>
-
-    <nav class="bottom-nav">
-        <button class="nav-item" data-mode="IMG_VID"><i>📷</i><span>PIC>VID</span></button>
-        <button class="nav-item" data-mode="TXT_VID"><i>✍️</i><span>TXT>VID</span></button>
-        <button class="nav-item" data-mode="EDIT"><i>🎨</i><span>EDIT</span></button>
-        <button class="nav-item" data-mode="F2F"><i>🎞️</i><span>F2F</span></button>
-        <button class="nav-item active" data-mode="CHAT"><i>💬</i><span>CHAT</span></button>
+    <!-- Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card p-3 flex justify-around items-center border-t border-white/5 z-50">
+        <button onclick="switchTab('chat')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-chat">
+            <i data-lucide="bot" class="w-6 h-6"></i>
+            <span class="text-[10px]">Asisten</span>
+        </button>
+        <button onclick="switchTab('image')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-image">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+            <span class="text-[10px]">Edit AI</span>
+        </button>
+        <button onclick="switchTab('video')" class="nav-item flex flex-col items-center gap-1 transition-all duration-300 opacity-50" id="nav-video">
+            <i data-lucide="clapperboard" class="w-6 h-6"></i>
+            <span class="text-[10px]">AI Video</span>
+        </button>
     </nav>
 
-    <script type="module" src="script.js"></script>
+    <!-- Firebase System Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTtQzwsHRgGWt7zcDABX_F8nErqtsRWMU",
+            authDomain: "portrait-lab-428308.firebaseapp.com",
+            projectId: "portrait-lab-428308",
+            storageBucket: "portrait-lab-428308.appspot.com",
+            messagingSenderId: "103625933953",
+            appId: "1:103625933953:android:4e929a8e574ab76308b980"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.db = getFirestore(app);
+            console.log("MHP SYSTEM ONLINE: Pintu Belakang Terbuka!");
+        } catch (err) {
+            console.error("Firebase Gagal: ", err);
+        }
+    </script>
+
+    <script>
+        const apiKey = ""; // Otomatis disuntikkan runtime
+        let currentTab = 'chat';
+
+        const views = {
+            chat: `
+                <div class="flex flex-col h-[72vh]">
+                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pr-1 pb-4">
+                        <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm leading-relaxed border border-white/5">
+                            Halo Boss! MHP AI System sudah aktif. Mau bikin konten AI apa hari ini?
+                        </div>
+                    </div>
+                    <div class="mt-2 flex gap-2 p-2 glass-card rounded-2xl items-center">
+                        <input type="text" id="chat-input" placeholder="Tanya sesuatu..." class="flex-1 bg-transparent border-none outline-none px-3 text-sm h-10">
+                        <button onclick="handleChat()" id="send-btn" class="bg-blue-600 hover:bg-blue-500 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <i data-lucide="send-horizontal" class="w-5 h-5 text-white"></i>
+                        </button>
+                    </div>
+                </div>
+            `,
+            image: `
+                <div class="space-y-4 animate-in fade-in duration-500">
+                    <div class="gradient-border p-6 text-center border-dashed border-2 border-slate-700">
+                        <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-3 text-blue-500"></i>
+                        <p class="text-sm font-medium">Unggah Foto (Gemini Edit)</p>
+                        <input type="file" id="file-input" class="hidden" onchange="previewImage(event)">
+                        <button onclick="document.getElementById('file-input').click()" class="mt-4 bg-white/5 px-6 py-2 rounded-full text-xs border border-white/10">Pilih File</button>
+                    </div>
+                    <div id="preview-wrapper" class="hidden">
+                        <img id="img-preview" class="w-full rounded-2xl border border-white/10">
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl space-y-3">
+                        <textarea id="ai-prompt" placeholder="Contoh: Jadikan anime cyberpunk..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-28 outline-none"></textarea>
+                        <button onclick="processImageAI()" id="proc-btn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 rounded-xl font-bold text-sm shadow-xl">PROSES AI</button>
+                    </div>
+                    <div id="result-container" class="hidden glass-card p-3 rounded-2xl border-2 border-blue-500/20">
+                        <img id="img-result" class="w-full rounded-xl">
+                    </div>
+                </div>
+            `,
+            video: `
+                <div class="space-y-4">
+                    <div class="glass-card p-5 rounded-2xl space-y-4 text-center">
+                        <i data-lucide="clapperboard" class="w-12 h-12 mx-auto text-purple-500"></i>
+                        <textarea id="vid-prompt" placeholder="Naga terbang di Jakarta..." class="w-full bg-slate-950/50 border border-white/5 rounded-xl p-3 text-sm h-32 outline-none"></textarea>
+                        <button onclick="generateVideo()" class="w-full bg-white text-black py-4 rounded-xl font-black text-sm uppercase shadow-xl">Generate Video</button>
+                    </div>
+                </div>
+            `
+        };
+
+        async function handleChat() {
+            const input = document.getElementById('chat-input');
+            const chatBox = document.getElementById('chat-box');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            chatBox.innerHTML += `<div class="chat-bubble-user p-4 rounded-2xl max-w-[85%] ml-auto text-sm shadow-xl">${prompt}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const loadingId = 'ai-' + Date.now();
+            chatBox.innerHTML += `<div id="${loadingId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3 border border-white/5"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400">MEMIKIRKAN...</span></div>`;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, server sedang sibuk.";
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed border border-white/10 shadow-sm">${aiResponse.replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                document.getElementById(loadingId).innerHTML = `<span class="text-red-400 text-[10px]">Error: Koneksi Terputus</span>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('app-viewport').innerHTML = views[tab];
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.add('opacity-50'));
+            const activeNav = document.getElementById(`nav-${tab}`);
+            activeNav.classList.remove('opacity-50');
+            activeNav.classList.add('text-blue-500');
+            
+            // Re-inisialisasi ikon Lucide
+            lucide.createIcons();
+            
+            if(tab === 'chat') {
+                document.getElementById('chat-input').addEventListener('keypress', (e) => { 
+                    if(e.key === 'Enter') handleChat(); 
+                });
+            }
+        }
+
+        function previewImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('preview-wrapper').classList.remove('hidden');
+                    document.getElementById('img-preview').src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function processImageAI() {
+            const btn = document.getElementById('proc-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="loader mx-auto"></div>`;
+            setTimeout(() => {
+                alert("Fitur Image Processing memerlukan API Key Imagen-4 yang aktif.");
+                btn.disabled = false;
+                btn.innerHTML = "PROSES AI";
+            }, 2000);
+        }
+
+        function generateVideo() { alert("Rendering video sedang disiapkan di server MHP."); }
+
+        window.onload = () => switchTab('chat');
+    </script>
 </body>
 </html>
 
