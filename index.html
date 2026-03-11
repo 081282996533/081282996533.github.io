@@ -2,36 +2,38 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHP GEMINI AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MHP AI</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <div class="logo">MHP GEMINI</div>
-        <div class="user-status">SUPER ADMIN</div>
+        <div class="logo">MHP AI</div>
+        <div class="badge">ISTIKOMAH</div>
     </header>
 
-    <main id="app-container">
-        <div id="chat-box">
-            <div class="bot-msg">Halo Master MHP, mau gedor server mana hari ini?</div>
+    <main id="display">
+        <div class="msg bot">
+             <br>
+         
         </div>
     </main>
 
-    <nav class="bottom-nav">
-        <button onclick="changeMode('img-to-vid')">📷 ➔ 🎬</button>
-        <button onclick="changeMode('txt-to-vid')">✍️ ➔ 🎬</button>
-        <button onclick="changeMode('edit-img')">🎨 EDIT</button>
-        <button onclick="changeMode('f-to-f')">🎞️ F2F</button>
-        <button onclick="changeMode('chat')">💬 CHAT</button>
-    </nav>
-
-    <div class="input-area">
-        <input type="text" placeholder="Tulis mantra di sini, BAJINGAN...">
-        <button id="send-btn">🚀</button>
+    <div class="input-box">
+        <button class="plus-btn">+</button>
+        <input type="text" id="prompt" placeholder="Tulis imajinasi binalmu...">
+        <button class="send-btn" id="execute-btn">🚀</button>
     </div>
 
-    <script type="module" src="rahasia.js"></script>
+    <nav class="bottom-nav">
+        <button class="nav-item" data-mode="IMG_VID"><i>📷</i><span>PIC>VID</span></button>
+        <button class="nav-item" data-mode="TXT_VID"><i>✍️</i><span>TXT>VID</span></button>
+        <button class="nav-item" data-mode="EDIT"><i>🎨</i><span>EDIT</span></button>
+        <button class="nav-item" data-mode="F2F"><i>🎞️</i><span>F2F</span></button>
+        <button class="nav-item active" data-mode="CHAT"><i>💬</i><span>CHAT</span></button>
+    </nav>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
 
