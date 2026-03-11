@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MHP STUDIO - ALL-IN-ONE</title>
+    <title>MHP STUDIO - POWERED BY GEMINI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.1/lucide-react.min.js"></script>
     <style>
@@ -20,12 +20,12 @@
 
     <header class="p-4 flex justify-between items-center sticky top-0 z-50 glass-card">
         <div class="flex items-center gap-2">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">M</div>
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg text-white">M</div>
             <h1 class="text-lg font-bold">Studio <span class="text-blue-400">MHP</span></h1>
         </div>
         <div class="bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20 flex items-center gap-2">
             <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-            <span class="text-[10px] font-medium text-blue-400 uppercase">System Ready</span>
+            <span class="text-[10px] font-medium text-blue-400 uppercase tracking-tighter">System Online</span>
         </div>
     </header>
 
@@ -39,34 +39,34 @@
     </nav>
 
     <script>
-        // --- KONFIGURASI PUSAT ---
-        const MHP_KEY = "AIzaSyBTtQzwsHRgGWt7zcDABX_F8nErqtsRWMU"; // Bensin API Master
+        // AMUNISI BARU DARI SUPER ADMIN MHP
+        const MHP_KEY = "AIzaSyDaxsAHQnVvCO2cs-jr7u51UCgPcYrvq2I"; 
         let currentTab = 'chat';
 
         const views = {
             chat: `
                 <div class="flex flex-col h-[70vh]">
                     <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 pb-4">
-                        <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm border border-white/5">Halo Super Admin MHP! Sistem Gemini 1.5 Flash aktif. Apa perintah Anda?</div>
+                        <div class="chat-bubble-ai p-4 rounded-2xl max-w-[90%] text-sm border border-white/5">Halo Master MHP! API baru sudah terpasang. Siap gedor server Gemini! Apa perintah Anda hari ini?</div>
                     </div>
                     <div class="mt-auto flex gap-2 p-2 glass-card rounded-2xl">
-                        <input type="text" id="chat-input" placeholder="Tanya sesuatu..." class="flex-1 bg-transparent border-none outline-none px-3 text-sm h-10">
-                        <button onclick="processChat()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90"><i data-lucide="send-horizontal" class="w-5 h-5"></i></button>
+                        <input type="text" id="chat-input" placeholder="Tulis mantra binalmu..." class="flex-1 bg-transparent border-none outline-none px-3 text-sm h-10">
+                        <button onclick="processChat()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-90"><i data-lucide="send-horizontal" class="w-5 h-5 text-white"></i></button>
                     </div>
                 </div>`,
             image: `
                 <div class="space-y-4">
                     <div class="glass-card p-6 text-center border-dashed border-2 border-slate-700 rounded-2xl">
                         <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-2 text-blue-500"></i>
-                        <p class="text-xs">Unggah Foto untuk Edit AI</p>
+                        <p class="text-[10px] uppercase text-slate-400">Unggah Gambar untuk Analisis AI</p>
                         <input type="file" id="file-input" class="hidden" onchange="previewImage(event)">
                         <button onclick="document.getElementById('file-input').click()" class="mt-3 bg-white/5 px-4 py-2 rounded-full text-[10px] border border-white/10">Pilih File</button>
                     </div>
                     <div id="preview-wrapper" class="hidden"><img id="img-preview" class="w-full rounded-xl border border-white/10"></div>
-                    <textarea id="ai-prompt" placeholder="Instruksi edit (Contoh: Beri efek cyberpunk)..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-24 outline-none"></textarea>
-                    <button onclick="alert('Engine Sedang Sinkronisasi')" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-sm">PROSES EDIT</button>
+                    <textarea id="ai-prompt" placeholder="Contoh: Deskripsikan foto ini dan jadikan prompt video..." class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3 text-sm h-24 outline-none"></textarea>
+                    <button onclick="alert('Engine Sedang Sinkronisasi')" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl font-bold text-sm">PROSES ANALISIS</button>
                 </div>`,
-            video: `<div class="p-8 text-center glass-card rounded-2xl"><i data-lucide="clapperboard" class="w-12 h-12 mx-auto text-slate-600 mb-2"></i><p class="text-sm">Video AI Engine memerlukan API khusus. Segera hadir di MHP Studio.</p></div>`
+            video: `<div class="p-12 text-center glass-card rounded-2xl border-dashed border border-white/10"><i data-lucide="clapperboard" class="w-12 h-12 mx-auto text-slate-700 mb-3"></i><p class="text-xs text-slate-500 font-bold uppercase tracking-widest">Video AI Engine: Connecting to Project h4kmr7v...</p></div>`
         };
 
         function switchTab(tab) {
@@ -91,22 +91,26 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const loadId = 'ai-' + Date.now();
-            chatBox.innerHTML += `<div id="${loadId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400">BERPIKIR...</span></div>`;
+            chatBox.innerHTML += `<div id="${loadId}" class="chat-bubble-ai p-4 rounded-2xl max-w-[150px] flex items-center gap-3"><div class="loader"></div><span class="text-[10px] font-bold text-slate-400 uppercase animate-pulse">Berpikir...</span></div>`;
 
             try {
-                // MENGGUNAKAN MODEL YANG VALID (1.5 FLASH)
+                // MENGGUNAKAN API KEY BARU MASTER
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MHP_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
+                
                 const data = await res.json();
-                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Server sibuk atau API Error, ASUUU!";
+                
+                if (data.error) throw new Error(data.error.message);
+
+                const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf Master, respon kosong dari server.";
                 
                 document.getElementById(loadId).remove();
-                chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[92%] text-sm leading-relaxed border border-white/10">${responseText.replace(/\n/g, '<br>')}</div>`;
+                chatBox.innerHTML += `<div class="chat-bubble-ai p-4 rounded-2xl max-w-[95%] text-sm leading-relaxed border border-white/10 shadow-lg">${responseText.replace(/\n/g, '<br>')}</div>`;
             } catch (err) {
-                document.getElementById(loadId).innerHTML = `<span class="text-red-400 text-[10px]">Error: ${err.message}</span>`;
+                document.getElementById(loadId).innerHTML = `<span class="text-red-400 text-[10px] font-bold">ERROR: ${err.message.toUpperCase()}</span>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
