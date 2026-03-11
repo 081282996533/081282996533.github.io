@@ -1,23 +1,5 @@
-import { MHP_CONFIG } from './mhp-config.js';
-
-let currentMode = 'CHAT';
-
-// Fungsi Ganti Mode
-const navItems = document.querySelectorAll('.nav-item');
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        navItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        currentMode = item.getAttribute('data-mode');
-        
-        const display = document.getElementById('display');
-        display.innerHTML += `<div class="msg bot" style="color:#00e5ff"><b>MODE:</b> ${currentMode} Aktif!</div>`;
-        display.scrollTop = display.scrollHeight;
-    });
-});
-
-// Fungsi Eksekusi Mantra
-document.getElementById('execute-btn').addEventListener('click', () => {
+// Ganti bagian listener tombol execute di script.js Master
+document.getElementById('execute-btn').addEventListener('click', async () => {
     const promptInput = document.getElementById('prompt');
     const display = document.getElementById('display');
     const prompt = promptInput.value;
@@ -25,10 +7,28 @@ document.getElementById('execute-btn').addEventListener('click', () => {
     if(!prompt) return;
 
     display.innerHTML += `<div class="msg user">${prompt}</div>`;
-    
-    setTimeout(() => {
-        display.innerHTML += `<div class="msg bot">Memproses ${currentMode}... <br> Menggunakan API: ${MHP_CONFIG.apiKey.substring(0,8)}*** <br> ASUUU!</div>`;
-        promptInput.value = '';
-        display.scrollTop = display.scrollHeight;
-    }, 1000);
+    promptInput.value = '';
+
+    // EFEK LOADING KASTA SULTAN
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'msg bot';
+    loadingMsg.innerText = 'Sedang Gedor Server...';
+    display.appendChild(loadingMsg);
+
+    try {
+        // DI SINI NANTI KITA TEMBAK API GEMINI/FIREBASE MASTER!
+        // Untuk sementara, kita kasih respon "Semi-Pinter" dulu:
+        setTimeout(() => {
+            if(prompt.includes("tanggal")) {
+                loadingMsg.innerText = `Sekarang tanggal ${new Date().toLocaleDateString('id-ID')}, Master MHP!`;
+            } else if(prompt.includes("dongeng")) {
+                loadingMsg.innerText = "Dahulu kala di kerajaan Madu Hitam Perkasa...";
+            } else {
+                loadingMsg.innerText = `Mode ${currentMode} Siap! Perintah "${prompt}" diterima.`;
+            }
+            display.scrollTop = display.scrollHeight;
+        }, 1500);
+    } catch (err) {
+        loadingMsg.innerText = "SERVER JEBOL, ASUUU! Cek API Key!";
+    }
 });
