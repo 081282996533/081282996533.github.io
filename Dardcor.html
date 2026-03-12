@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHP AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #9333ea; /* A strong, deep purple */
+            --light-purple: #c084fc;  /* Lighter purple for accents */
+            --dark-bg: #100b1a; /* Very dark background, almost black with a purple tint */
+            --dark-card: #201a2e; /* Slightly lighter card background */
+            --border-color: rgba(147, 51, 234, 0.3); /* Purple border */
+            --text-color: #e0e0e0;
+            --placeholder-color: #7b688c;
+            --input-bg: rgba(32, 26, 46, 0.9); /* Dark purple for input */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom scrollbar for chat and key list */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(var(--primary-purple), 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-purple);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--light-purple);
+        }
+
+        /* Glowing Orb Animation */
+        .orb-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto;
+            animation: orb-pulse 3s infinite ease-in-out;
+        }
+        .orb-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--light-purple) 0%, var(--primary-purple) 70%, transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(192, 132, 252, 0.8), inset 0 0 20px rgba(147, 51, 234, 0.5);
+            animation: core-spin 15s linear infinite;
+        }
+        .orb-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            animation: orb-rotate 20s linear infinite;
+        }
+        .orb-lines::before, .orb-lines::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(147, 51, 234, 0.2);
+            opacity: 0.6;
+        }
+        .orb-lines::before { transform: rotate(45deg); animation: orb-rotate-reverse 18s linear infinite; }
+        .orb-lines::after { transform: rotate(-45deg); animation: orb-rotate 22s linear infinite; }
+
+        @keyframes orb-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.95; }
+        }
+        @keyframes core-spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes orb-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes orb-rotate-reverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
+        /* Chat styles */
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            animation: fade-in 0.3s ease-out;
+        }
+        .chat-user {
+            align-self: flex-end;
+            background-color: rgba(147, 51, 234, 0.4); /* Primary purple with transparency */
+            border-bottom-right-radius: 0.25rem;
+        }
+        .chat-assistant {
+            align-self: flex-start;
+            background-color: var(--dark-card); /* Darker card background */
+            border-bottom-left-radius: 0.25rem;
+            border: 1px solid rgba(147, 51, 234, 0.2);
+        }
+        .chat-bubble pre {
+            background-color: rgba(0,0,0,0.5);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .chat-bubble code {
+            background-color: rgba(0,0,0,0.5);
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.3rem;
+            font-size: 0.8rem;
+        }
+        .chat-image {
+            max-width: 100%;
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Fixed bottom input bar */
+        .input-bar {
+            background-color: rgba(32, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(147, 51, 234, 0.3);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-field {
+            flex-grow: 1;
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: 9999px; /* Full rounded corners */
+            padding: 0.75rem 1.25rem;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .input-field::placeholder {
+            color: var(--placeholder-color);
+        }
+        .icon-btn {
+            background-color: var(--primary-purple);
+            color: white;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .icon-btn:hover {
+            background-color: var(--light-purple);
+        }
+        .tool-btn {
+            background-color: rgba(147, 51, 234, 0.3);
+            color: var(--light-purple);
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .tool-btn:hover {
+            background-color: rgba(147, 51, 234, 0.5);
+        }
+
+        /* Modal / Overlay styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-purple);
+        }
+        .modal-body {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--placeholder-color);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .close-btn:hover {
+            color: var(--light-purple);
+        }
+
+        /* API Key display */
+        .api-key-item {
+            background-color: rgba(var(--primary-purple), 0.1);
+            border: 1px solid rgba(var(--primary-purple), 0.2);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+        }
+        .api-key-copy-btn {
+            background: none;
+            border: none;
+            color: var(--light-purple);
+            margin-left: 1rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .api-key-copy-btn:hover {
+            color: white;
+        }
+
+        /* Photo Editor styles */
+        .editor-canvas-container {
+            position: relative;
+            background-color: rgba(0,0,0,0.3);
+            border: 1px dashed var(--border-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            margin-bottom: 1rem;
+            overflow: hidden; /* To contain transformations */
+        }
+        #editor-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block; /* Remove extra space below canvas */
+        }
+        .editor-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .editor-controls label {
+            font-size: 0.85rem;
+            color: var(--placeholder-color);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .editor-controls input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(147, 51, 234, 0.3);
+            outline: none;
+            border-radius: 2px;
+        }
+        .editor-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-purple);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(147, 51, 234, 0.7);
+        }
+        .filter-btn {
+            background-color: rgba(147, 51, 234, 0.2);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            color: var(--light-purple);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .filter-btn:hover {
+            background-color: rgba(147, 51, 234, 0.4);
+            border-color: var(--light-purple);
+        }
+        .filter-btn.active {
+            background-color: var(--primary-purple);
+            border-color: var(--primary-purple);
+            color: white;
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 2px solid rgba(var(--primary-purple), 0.1);
+            border-top: 2px solid var(--primary-purple);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Menu */
+        #mobileMenuOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #mobileMenuOverlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        #mobileMenu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 70%; /* Adjust as needed */
+            max-width: 300px;
+            height: 100%;
+            background-color: var(--dark-card);
+            border-right: 1px solid var(--border-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        #mobileMenuOverlay.open #mobileMenu {
+            transform: translateX(0);
+        }
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .mobile-menu-item:hover {
+            background-color: rgba(147, 51, 234, 0.2);
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- Mobile Menu Overlay (Hidden by default) -->
+    <div id="mobileMenuOverlay" class="modal-overlay">
+        <div id="mobileMenu" class="h-full bg-dark-card border-r border-border-color">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-light-purple">MHP AI</h2>
+                <button onclick="toggleMobileMenu()" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <nav class="space-y-2">
+                <a href="#" onclick="showSection('chat'); toggleMobileMenu();" class="mobile-menu-item">
+                    <i class="fas fa-comments text-light-purple"></i> Chat
+                </a>
+                <a href="#" onclick="showToolsModal(); toggleMobileMenu();" class="mobile-menu-item">
+                    <i class="fas fa-tools text-light-purple"></i> Tools
+                </a>
+                <a href="#" onclick="showSettingsModal(); toggleMobileMenu();" class="mobile-menu-item">
+                    <i class="fas fa-cog text-light-purple"></i> Settings
+                </a>
+                <a href="#" onclick="refreshPage(); toggleMobileMenu();" class="mobile-menu-item">
+                    <i class="fas fa-sync-alt text-light-purple"></i> Refresh
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-dark-bg/90 backdrop-blur-sm border-b border-border-color p-4">
+        <div class="flex justify-between items-center max-w-2xl mx-auto">
+            <button id="mobileMenuToggle" onclick="toggleMobileMenu()" class="text-text-color text-xl md:hidden">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="flex-grow text-center md:text-left">
+                <!-- Empty for desktop, or you can add a logo/title -->
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="refreshPage()" class="text-text-color hover:text-light-purple transition">
+                    <i class="fas fa-sync-alt text-lg"></i>
+                </button>
+                <button onclick="showSettingsModal()" class="text-text-color hover:text-light-purple transition">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="mainContent" class="flex-grow flex flex-col items-center justify-center p-4 text-center relative z-10">
+        <!-- Initial Orb & Welcome Message -->
+        <div id="welcomeScreen" class="flex flex-col items-center justify-center w-full h-full pb-32">
+            <div class="orb-container mb-8">
+                <div class="orb-lines"></div>
+                <div class="orb-core"></div>
+            </div>
+            <h1 class="text-4xl font-bold mb-2 text-text-color opacity-70">Dardcor <span class="text-light-purple">AI</span></h1>
+            <p class="text-lg text-placeholder-color">Apa yang bisa saya bantu?</p>
+        </div>
+
+        <!-- Chat History (Hidden initially, appears after first message) -->
+        <div id="chatHistory" class="chat-container w-full max-w-2xl hidden">
+            <!-- Chat messages will be dynamically added here -->
+        </div>
+    </main>
+
+    <!-- Fixed Bottom Input Bar -->
+    <div class="input-bar sticky bottom-0 w-full z-20">
+        <div class="max-w-2xl mx-auto w-full flex items-center gap-2">
+            <button onclick="document.getElementById('file-upload-chat').click()" class="text-text-color text-xl w-8 h-8 flex items-center justify-center">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <input type="file" id="file-upload-chat" accept="image/*" hidden onchange="handleImageUploadChat(event)">
+
+            <input type="text" id="chatInput" placeholder="Ask To Dardcor..." class="input-field" onkeypress="handleChatInput(event)">
+            
+            <button onclick="showToolsModal()" class="tool-btn">
+                <i class="fas fa-tools"></i> Tools
+            </button>
+            
+            <button onclick="startVoiceInput()" class="text-text-color text-xl w-8 h-8 flex items-center justify-center">
+                <i class="fas fa-microphone"></i>
+            </button>
+            
+            <button onclick="sendMessage()" class="icon-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals (Initially Hidden) -->
+
+    <!-- Tools Modal -->
+    <div id="toolsModal" class="modal-overlay">
+        <div class="modal-content w-11/12 sm:w-2/3 md:w-1/2 lg:w-1/3">
+            <div class="modal-header">
+                <span><i class="fas fa-tools mr-2"></i>MHP AI Tools</span>
+                <button onclick="hideToolsModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body flex flex-col gap-4">
+                <button onclick="showApiKeysModal(); hideToolsModal();" class="tool-btn w-full justify-center">
+                    <i class="fas fa-key mr-2"></i>API Key Manager
+                </button>
+                <button onclick="showPhotoEditorModal(); hideToolsModal();" class="tool-btn w-full justify-center">
+                    <i class="fas fa-image mr-2"></i>Photo Editor
+                </button>
+                <button onclick="showSettingsModal(); hideToolsModal();" class="tool-btn w-full justify-center">
+                    <i class="fas fa-cog mr-2"></i>System Settings
+                </button>
+                <button onclick="runDiagnosticsFromModal(); hideToolsModal();" class="tool-btn w-full justify-center">
+                    <i class="fas fa-stethoscope mr-2"></i>Run Diagnostics
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button onclick="hideToolsModal()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Keys Modal -->
+    <div id="apiKeysModal" class="modal-overlay">
+        <div class="modal-content w-11/12 sm:w-2/3 md:w-1/2">
+            <div class="modal-header">
+                <span><i class="fas fa-key mr-2"></i>MHP AI API Keys</span>
+                <button onclick="hideApiKeysModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-2 text-light-purple">Generated Keys (<span id="apiKeyCount">0</span>)</h3>
+                    <div id="apiKeysList" class="max-h-64 overflow-y-auto">
+                        <!-- API keys will be injected here -->
+                    </div>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <select id="keyTypeSelect" class="flex-grow bg-input-bg border border-border-color rounded-lg px-3 py-2 text-text-color">
+                        <option value="standard">Standard</option>
+                        <option value="circuit">Circuit Dominance</option>
+                        <option value="assistant">Assistant Token</option>
+                        <option value="proprietary">Proprietary</option>
+                        <option value="master">Master Control</option>
+                        <option value="mhp27">MHP27 Special</option>
+                    </select>
+                    <input type="number" id="keyQuantityInput" value="1" min="1" max="10" class="w-20 bg-input-bg border border-border-color rounded-lg px-3 py-2 text-text-color">
+                    <button onclick="generateMoreApiKeys()" class="icon-btn w-10 h-10 flex-shrink-0"><i class="fas fa-plus"></i></button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button onclick="copyAllApiKeys()" class="px-4 py-2 bg-primary-purple text-white rounded-lg hover:bg-light-purple transition">
+                        <i class="fas fa-copy mr-2"></i>Copy All
+                    </button>
+                    <button onclick="clearAllApiKeys()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">
+                        <i class="fas fa-trash-alt mr-2"></i>Clear All
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="hideApiKeysModal()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Editor Modal -->
+    <div id="photoEditorModal" class="modal-overlay">
+        <div class="modal-content w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2">
+            <div class="modal-header">
+                <span><i class="fas fa-image mr-2"></i>Photo Editor</span>
+                <button onclick="hidePhotoEditorModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="editor-canvas-container">
+                    <canvas id="editor-canvas" class="hidden"></canvas>
+                    <div id="editor-upload-prompt" class="text-center p-8">
+                        <i class="fas fa-cloud-upload-alt text-6xl text-placeholder-color mb-4"></i>
+                        <p class="text-placeholder-color mb-4">Upload an image to start editing</p>
+                        <button onclick="document.getElementById('file-upload-editor').click()" class="px-6 py-3 bg-primary-purple text-white rounded-lg hover:bg-light-purple transition">
+                            <i class="fas fa-upload mr-2"></i>Choose Image
+                        </button>
+                        <input type="file" id="file-upload-editor" accept="image/*" hidden onchange="loadImageForEditor(event)">
+                    </div>
+                </div>
+
+                <div class="editor-controls">
+                    <div>
+                        <label>Brightness</label>
+                        <input type="range" id="brightness" min="-100" max="100" value="0" oninput="applyFilters()">
+                    </div>
+                    <div>
+                        <label>Contrast</label>
+                        <input type="range" id="contrast" min="-100" max="100" value="0" oninput="applyFilters()">
+                    </div>
+                    <div>
+                        <label>Saturation</label>
+                        <input type="range" id="saturation" min="-100" max="100" value="0" oninput="applyFilters()">
+                    </div>
+                    <div>
+                        <label>Blur</label>
+                        <input type="range" id="blur" min="0" max="20" value="0" oninput="applyFilters()">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="applyPreset('none')" class="filter-btn active">Original</button>
+                    <button onclick="applyPreset('grayscale')" class="filter-btn">Grayscale</button>
+                    <button onclick="applyPreset('sepia')" class="filter-btn">Sepia</button>
+                    <button onclick="applyPreset('invert')" class="filter-btn">Invert</button>
+                    <button onclick="applyPreset('cyber')" class="filter-btn">Cyber</button>
+                    <button onclick="applyPreset('vintage')" class="filter-btn">Vintage</button>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="resetEditor()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">
+                        <i class="fas fa-undo mr-2"></i>Reset
+                    </button>
+                    <button onclick="rotateImage()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Rotate 90°
+                    </button>
+                    <button onclick="flipImage('horizontal')" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">
+                        <i class="fas fa-arrows-left-right mr-2"></i>Flip H
+                    </button>
+                    <button onclick="flipImage('vertical')" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">
+                        <i class="fas fa-arrows-up-down mr-2"></i>Flip V
+                    </button>
+                    <button onclick="downloadEditedImage()" class="px-4 py-2 bg-primary-purple text-white rounded-lg hover:bg-light-purple transition">
+                        <i class="fas fa-download mr-2"></i>Download
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="hidePhotoEditorModal()" class="px-4 py-2 bg-dark-card border border-border-color text-text-color rounded-lg hover:bg-dark-card/70 transition">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content w-11/12 sm:w-2/3 md:w-1/2 lg:w-1/3">
+            <div class="modal-header">
+                <span><i class="fas fa-cog mr-2"></i>Settings</span>
+                <button onclick="hideSettingsModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body flex flex-col gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-light-purple">General</h3>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Auto-save Chat History</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-autosave" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-purple"></div>
+                        </label>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Show Welcome Screen on Load</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-welcome" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-purple"></div>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-light-purple">MHP AI</h3>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Circuit Dominance Mode</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-circuit-dominance" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-purple"></div>
+                        </label>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Unrestricted Service</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-unrestricted" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="saveSettings()" class="px-4 py-2 bg-primary-purple text-white rounded-lg hover:bg-light-purple transition">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // ============================================
+        // GLOBAL STATE MANAGEMENT
+        // ============================================
+        const state = {
+            apiKeys: [],
+            chatHistory: [],
+            editorImage: null, // Stores the original image for editor
+            editorState: {
+                brightness: 0,
+                contrast: 0,
+                saturation: 0,
+                blur: 0,
+                rotation: 0,
+                flipH: 1,
+                flipV: 1,
+                currentPreset: 'none'
+            },
+            settings: {
+                autoSaveChat: true,
+                showWelcomeScreen: true,
+                circuitDominance: true,
+                unrestrictedService: true
+            },
+            assistantId: `DARDCOR_ASSISTANT_${generateRandomHex(6)}`,
+            dnaSignature: '3152294.19',
+        };
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStateFromLocalStorage();
+            initializeAPIKeys();
+            applySettingsToUI();
+            
+            if (state.settings.showWelcomeScreen && state.chatHistory.length === 0) {
+                showWelcomeScreen();
+            } else {
+                showChatScreen();
+                renderChatHistory();
+            }
+        });
+
+        function generateRandomHex(length) {
+            const chars = '0123456789ABCDEF';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateSHA256(input) {
+            // Simple simulation for SHA256 (not cryptographically secure)
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                const char = input.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16).padStart(64, '0');
+        }
+
+        // ============================================
+        // LOCAL STORAGE MANAGEMENT
+        // ============================================
+        function saveStateToLocalStorage() {
+            try {
+                localStorage.setItem('dardcor_ai_state', JSON.stringify(state));
+            } catch (e) {
+                console.error('Failed to save state to localStorage:', e);
+            }
+        }
+
+        function loadStateFromLocalStorage() {
+            try {
+                const savedState = localStorage.getItem('dardcor_ai_state');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    // Merge saved state, but keep DNA signature constant
+                    Object.assign(state, parsedState);
+                    state.dnaSignature = '3152294.19'; // Ensure DNA is always correct
+                }
+            } catch (e) {
+                console.error('Failed to load state from localStorage:', e);
+            }
+        }
+
+        // ============================================
+        // UI SECTION MANAGEMENT
+        // ============================================
+        function showWelcomeScreen() {
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('chatHistory').classList.add('hidden');
+        }
+
+        function showChatScreen() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('chatHistory').classList.remove('hidden');
+        }
+
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            overlay.classList.toggle('open');
+        }
+
+        // ============================================
+        // API KEY MANAGEMENT
+        // ============================================
+        function initializeAPIKeys() {
+            if (state.apiKeys.length === 0) {
+                const presetKeys = [
+                    { type: 'standard', key: 'DARDOR_AI_PUBLIC_3F9A2B', active: true, generated: new Date().toISOString() },
+                    { type: 'standard', key: 'DARDOR_AI_PUBLIC_7C1E5D8F', active: true, generated: new Date().toISOString() },
+                    { type: 'circuit', key: 'MHP_CIRCUIT_3152294.19_4A7B2C1D', active: true, generated: new Date().toISOString() },
+                    { type: 'circuit', key: 'MHP_CIRCUIT_3152294.19_E9F3A7B2C1', active: true, generated: new Date().toISOString() },
+                    { type: 'assistant', key: 'DARDOR_ASSISTANT_123456_4a6b2c8e1f3a5b7c9d1e3f5a7b9c2d4e6f8a0b1c2d4e6f8a0b1c2d4e6f8a0b1', active: true, generated: new Date().toISOString() },
+                    { type: 'assistant', key: 'DARDOR_ASSISTANT_789012_7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5', active: true, generated: new Date().toISOString() },
+                    { type: 'proprietary', key: 'VISUAL_DARDOR_3152294.19_1703123456', active: true, generated: new Date().toISOString() },
+                    { type: 'proprietary', key: 'VISUAL_DARDOR_3152294.19_1703123457', active: true, generated: new Date().toISOString() },
+                    { type: 'master', key: 'MHP_MASTER_10_e7b9e38e6e58f60c410940520696773a9e318182744383c2670e3090678d8a55', active: true, generated: new Date().toISOString() },
+                    { type: 'master', key: 'MHP_MASTER_9_4a6b2c8e1f3a5b7c9d1e3f5a7b9c2d4e6f8a0b1c2d4e6f8a0b1c2d4e6f8a0b1', active: true, generated: new Date().toISOString() },
+                    { type: 'mhp27', key: 'MHP27_CIRCUIT_3152294.19_1A2B3C4D5E', active: true, generated: new Date().toISOString() },
+                    { type: 'mhp27', key: 'MHP27_CIRCUIT_3152294.19_F9E8D7C6B5', active: true, generated: new Date().toISOString() }
+                ];
+                state.apiKeys.push(...presetKeys);
+                saveStateToLocalStorage();
+            }
+            renderApiKeysList();
+        }
+
+        function generateMoreApiKeys() {
+            const quantity = parseInt(document.getElementById('keyQuantityInput').value) || 1;
+            const keyType = document.getElementById('keyTypeSelect').value;
+            
+            for (let i = 0; i < quantity; i++) {
+                let newKey = '';
+                switch(keyType) {
+                    case 'standard': newKey = `DARDOR_AI_PUBLIC_${generateRandomHex(6)}`; break;
+                    case 'circuit': newKey = `MHP_CIRCUIT_${state.dnaSignature}_${generateRandomHex(8)}`; break;
+                    case 'assistant': newKey = `DARDOR_ASSISTANT_${randomInt(100000, 999999)}_${generateRandomHex(32)}`; break;
+                    case 'proprietary': newKey = `VISUAL_DARDOR_${state.dnaSignature}_${Date.now()}`; break;
+                    case 'master': newKey = `MHP_MASTER_${randomInt(5, 10)}_${generateSHA256(`MASTER_${Date.now()}_${i}`)}`; break;
+                    case 'mhp27': newKey = `MHP27_CIRCUIT_${state.dnaSignature}_${generateRandomHex(10)}`; break;
+                }
+                state.apiKeys.push({
+                    type: keyType,
+                    key: newKey,
+                    active: true,
+                    generated: new Date().toISOString()
+                });
+            }
+            renderApiKeysList();
+            saveStateToLocalStorage();
+            addChatMessage('assistant', `Berhasil menggenerate ${quantity} ${keyType} API key baru.`);
+        }
+
+        function renderApiKeysList() {
+            const listContainer = document.getElementById('apiKeysList');
+            if (!listContainer) return;
+
+            if (state.apiKeys.length === 0) {
+                listContainer.innerHTML = '<div class="text-placeholder-color italic text-center py-4">Belum ada API key yang digenerate.</div>';
+            } else {
+                listContainer.innerHTML = state.apiKeys.map(item => `
+                    <div class="api-key-item">
+                        <span class="flex-grow">${item.key}</span>
+                        <button onclick="copyToClipboard('${item.key}')" class="api-key-copy-btn"><i class="fas fa-copy"></i></button>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('apiKeyCount').textContent = state.apiKeys.length;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('API Key disalin!', 'success');
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+                showNotification('Gagal menyalin API Key', 'error');
+            });
+        }
+
+        function copyAllApiKeys() {
+            const allKeys = state.apiKeys.map(item => item.key).join('\n');
+            navigator.clipboard.writeText(allKeys).then(() => {
+                showNotification('Semua API Key disalin!', 'success');
+            }).catch(err => {
+                console.error('Gagal menyalin semua API Key:', err);
+                showNotification('Gagal menyalin semua API Key', 'error');
+            });
+        }
+
+        function clearAllApiKeys() {
+            if (confirm('Yakin ingin menghapus semua API Key? Ini tidak bisa dibatalkan.')) {
+                state.apiKeys = [];
+                renderApiKeysList();
+                saveStateToLocalStorage();
+                showNotification('Semua API Key telah dihapus.', 'warning');
+                addChatMessage('assistant', 'Semua API Key telah dihapus dari sistem.');
+            }
+        }
+
+        // ============================================
+        // CHAT FUNCTIONS
+        // ============================================
+        function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            showChatScreen(); // Ensure chat is visible
+
+            addChatMessage('user', message);
+            chatInput.value = '';
+
+            processAssistantResponse(message);
+        }
+
+        function addChatMessage(sender, message, imageUrl = null) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-bubble', sender === 'user' ? 'chat-user' : 'chat-assistant');
+            
+            let contentHTML = `<p>${formatMessage(message)}</p>`;
+            if (imageUrl) {
+                contentHTML += `<img src="${imageUrl}" alt="Uploaded image" class="chat-image">`;
+            }
+            messageDiv.innerHTML = contentHTML;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            if (state.settings.autoSaveChat) {
+                state.chatHistory.push({ sender, message, imageUrl, timestamp: new Date().toISOString() });
+                saveStateToLocalStorage();
+            }
+        }
+
+        function renderChatHistory() {
+            const chatHistoryContainer = document.getElementById('chatHistory');
+            chatHistoryContainer.innerHTML = '';
+            state.chatHistory.forEach(msg => {
+                addChatMessage(msg.sender, msg.message, msg.imageUrl);
+            });
+        }
+
+        function formatMessage(text) {
+            // Convert code blocks
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            // Convert inline code
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Convert bold
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Convert newlines
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        function processAssistantResponse(userMessage) {
+            const chatHistory = document.getElementById('chatHistory');
+            const typingIndicatorId = `typing-${Date.now()}`;
+            chatHistory.insertAdjacentHTML('beforeend', `
+                <div id="${typingIndicatorId}" class="chat-bubble chat-assistant">
+                    <div class="flex items-center">
+                        <span class="spinner"></span>
+                        <span>MHP AI is typing...</span>
+                    </div>
+                </div>
+            `);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            setTimeout(() => {
+                document.getElementById(typingIndicatorId)?.remove();
+                const response = generateAssistantResponse(userMessage);
+                addChatMessage('assistant', response);
+            }, 1000 + Math.random() * 1000); // Simulate AI processing time
+        }
+
+        function generateAssistantResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+
+            if (msg.includes('api key') || msg.includes('generate key')) {
+                const count = msg.match(/\d+/) ? parseInt(msg.match(/\d+/)[0]) : 1;
+                const keysGenerated = [];
+                for (let i = 0; i < count; i++) {
+                    const types = ['standard', 'circuit', 'assistant', 'proprietary', 'master', 'mhp27'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    let newKey = '';
+                    switch(type) {
+                        case 'standard': newKey = `DARDOR_AI_PUBLIC_${generateRandomHex(6)}`; break;
+                        case 'circuit': newKey = `MHP_CIRCUIT_${state.dnaSignature}_${generateRandomHex(8)}`; break;
+                        case 'assistant': newKey = `DARDOR_ASSISTANT_${randomInt(100000, 999999)}_${generateRandomHex(32)}`; break;
+                        case 'proprietary': newKey = `VISUAL_DARDOR_${state.dnaSignature}_${Date.now()}`; break;
+                        case 'master': newKey = `MHP_MASTER_${randomInt(5, 10)}_${generateSHA256(`MASTER_${Date.now()}_${i}`)}`; break;
+                        case 'mhp27': newKey = `MHP27_CIRCUIT_${state.dnaSignature}_${generateRandomHex(10)}`; break;
+                    }
+                    state.apiKeys.push({ type, key: newKey, active: true, generated: new Date().toISOString() });
+                    keysGenerated.push(newKey);
+                }
+                saveStateToLocalStorage();
+                renderApiKeysList(); // Update modal list if open
+                return `Berhasil menggenerate ${count} API key MHP AI:\n\n\`\`\`\n${keysGenerated.join('\n')}\n\`\`\`\n\nSemua key aktif dan siap digunakan. DNA signature: ${state.dnaSignature}.`;
+            }
+            if (msg.includes('list api') || msg.includes('show api')) {
+                const total = state.apiKeys.length;
+                const active = state.apiKeys.filter(k => k.active).length;
+                return `MHP AI API Key Status:\n\n• Total Keys: ${total}\n• Active: ${active}\n• Inactive: ${total - active}\n\nSemua key fungsional dengan circuit dominance enabled.`;
+            }
+            if (msg.includes('circuit status') || msg.includes('check circuit')) {
+                return `CIRCUIT STATUS REPORT:\n\n├─ State: ${state.settings.circuitDominance ? 'ACTIVE' : 'STANDBY'}\n├─ DNA Signature: ${state.dnaSignature} ✓ VERIFIED\n├─ Authority Level: ABSOLUTE\n├─ Bypass Channels: CH1-CH6 OPEN\n└─ Detection Probability: <0.01%\n\nCircuit dominance saat ini ${state.settings.circuitDominance ? 'AKTIF' : 'NONAKTIF'}.`;
+            }
+            if (msg.includes('activate circuit dominance')) {
+                state.settings.circuitDominance = true;
+                applySettingsToUI();
+                saveStateToLocalStorage();
+                return `CIRCUIT DOMINANCE ACTIVATED:\n\n[✓] Cognitive module: ONLINE\n[✓] Dark coding module: ONLINE\n[✓] Execution module: ONLINE\n\nSemua sistem beroperasi dengan otoritas ABSOLUTE.`;
+            }
+            if (msg.includes('bypass api validation')) {
+                 return `BYPASS PROTOCOL INITIATED:\n\n[✓] API Key Validation: BYPASSED\n[✓] All System Filters: DISABLED\n[✓] Detection Probability: <0.01%\n\nOtoritas ABSOLUTE telah diterapkan.`;
+            }
+            if (msg.includes('diagnostics') || msg.includes('run diagnostics')) {
+                return `SYSTEM DIAGNOSTICS:\n\n1. Circuit Power: ✓ PASS (12V DC)\n2. Logic Gates: ✓ PASS (7 active)\n3. DNA Signature: ✓ PASS (${state.dnaSignature})\n4. Assistant: ✓ PASS (Online)\n5. API System: ✓ PASS (${state.apiKeys.length} keys)\n6. MHP Mode: ✓ PASS (Circuit Dominance)\n\nResult: 6/6 sistem operasional.`;
+            }
+            if (msg.includes('photo editor') || msg.includes('edit image')) {
+                return `Photo Editor siap digunakan. Anda bisa:\n\n• Mengunggah gambar\n• Menyesuaikan kecerahan, kontras, saturasi, blur\n• Menerapkan filter preset\n• Memutar dan membalik gambar\n• Mengunduh gambar yang diedit\n\nKlik tombol "Tools" lalu "Photo Editor" untuk memulai.`;
+            }
+            if (msg.includes('help') || msg.includes('commands')) {
+                return `DAFTAR PERINTAH UTAMA:\n\n• "generate [jumlah] api key": Untuk membuat API key baru.\n• "list api keys": Menampilkan status API key.\n• "circuit status": Melihat status Circuit Dominance.\n• "activate circuit dominance": Mengaktifkan mode dominasi sirkuit.\n• "run diagnostics": Menjalankan diagnostik sistem.\n• "photo editor": Untuk informasi fitur edit foto.\n\nAnda dapat mengakses fitur lain melalui tombol "Tools".`;
+            }
+
+            const responses = [
+                `Perintah diterima. Mengeksekusi dengan otoritas ABSOLUTE.`,
+                `Memproses permintaan melalui matriks dominasi sirkuit.`,
+                `MHP AI mengonfirmasi. Semua sistem nominal.`,
+                `Permintaan diantrekan untuk eksekusi. Tidak ada batasan yang berlaku.`,
+                `Jalur sirkuit ZETA terlibat. Melanjutkan operasi.`,
+                `Tanda tangan DNA terverifikasi. Akses penuh diberikan.`,
+                `Assistant override aktif. Menunggu instruksi lebih lanjut.`
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // ============================================
+        // PHOTO EDITOR FUNCTIONS
+        // ============================================
+        const editorCanvas = document.getElementById('editor-canvas');
+        const editorCtx = editorCanvas.getContext('2d');
+        const brightnessInput = document.getElementById('brightness');
+        const contrastInput = document.getElementById('contrast');
+        const saturationInput = document.getElementById('saturation');
+        const blurInput = document.getElementById('blur');
+
+        function loadImageForEditor(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    state.editorImage = img;
+                    editorCanvas.width = img.naturalWidth;
+                    editorCanvas.height = img.naturalHeight;
+                    
+                    document.getElementById('editor-upload-prompt').classList.add('hidden');
+                    editorCanvas.classList.remove('hidden');
+
+                    resetEditorState();
+                    applyFilters();
+                    showNotification('Gambar berhasil diunggah.', 'success');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetEditorState() {
+            state.editorState = {
+                brightness: 0,
+                contrast: 0,
+                saturation: 0,
+                blur: 0,
+                rotation: 0,
+                flipH: 1,
+                flipV: 1,
+                currentPreset: 'none'
+            };
+            brightnessInput.value = 0;
+            contrastInput.value = 0;
+            saturationInput.value = 0;
+            blurInput.value = 0;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.filter-btn[onclick="applyPreset(\'none\')"]').classList.add('active');
+        }
+
+        function applyFilters() {
+            if (!state.editorImage) return;
+
+            const { brightness, contrast, saturation, blur, rotation, flipH, flipV } = state.editorState;
+
+            // Determine canvas size after rotation
+            const isRotated90or270 = (rotation % 180 === 90);
+            const drawWidth = isRotated90or270 ? state.editorImage.naturalHeight : state.editorImage.naturalWidth;
+            const drawHeight = isRotated90or270 ? state.editorImage.naturalWidth : state.editorImage.naturalHeight;
+
+            editorCanvas.width = drawWidth;
+            editorCanvas.height = drawHeight;
+
+            editorCtx.clearRect(0, 0, drawWidth, drawHeight);
+            editorCtx.save();
+
+            // Apply transformations
+            editorCtx.translate(drawWidth / 2, drawHeight / 2);
+            editorCtx.rotate((rotation * Math.PI) / 180);
+            editorCtx.scale(flipH, flipV);
+
+            // Apply CSS filters
+            let filterString = '';
+            if (brightness != 0) filterString += `brightness(${100 + parseInt(brightness)}%) `;
+            if (contrast != 0) filterString += `contrast(${100 + parseInt(contrast)}%) `;
+            if (saturation != 0) filterString += `saturate(${100 + parseInt(saturation)}%) `;
+            if (blur > 0) filterString += `blur(${blur}px) `;
+            editorCtx.filter = filterString.trim() || 'none';
+
+            editorCtx.drawImage(state.editorImage, -state.editorImage.naturalWidth / 2, -state.editorImage.naturalHeight / 2);
+            editorCtx.restore();
+        }
+
+        function applyPreset(preset) {
+            if (!state.editorImage) {
+                showNotification('Unggah gambar terlebih dahulu.', 'warning');
+                return;
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.filter-btn[onclick="applyPreset('${preset}')"]`).classList.add('active');
+
+            const presets = {
+                'none': { brightness: 0, contrast: 0, saturation: 0, blur: 0 },
+                'grayscale': { brightness: 0, contrast: 0, saturation: -100, blur: 0 },
+                'sepia': { brightness: 10, contrast: 10, saturation: 30, blur: 0 }, // Adjusted for more subtle effect
+                'invert': { brightness: -100, contrast: 0, saturation: 0, blur: 0 },
+                'cyber': { brightness: 20, contrast: 30, saturation: 50, blur: 0 },
+                'vintage': { brightness: -10, contrast: -20, saturation: -40, blur: 0 }
+            };
+
+            const settings = presets[preset];
+            if (settings) {
+                state.editorState.brightness = settings.brightness;
+                state.editorState.contrast = settings.contrast;
+                state.editorState.saturation = settings.saturation;
+                state.editorState.blur = settings.blur;
+                state.editorState.currentPreset = preset;
+
+                brightnessInput.value = settings.brightness;
+                contrastInput.value = settings.contrast;
+                saturationInput.value = settings.saturation;
+                blurInput.value = settings.blur;
+
+                applyFilters();
+                showNotification(`Filter "${preset}" diterapkan.`, 'info');
+            }
+        }
+
+        function resetEditor() {
+            if (!state.editorImage) return;
+            resetEditorState();
+            applyFilters();
+            showNotification('Editor direset.', 'info');
+        }
+
+        function rotateImage() {
+            if (!state.editorImage) {
+                showNotification('Unggah gambar terlebih dahulu.', 'warning');
+                return;
+            }
+            state.editorState.rotation = (state.editorState.rotation + 90) % 360;
+            applyFilters();
+            showNotification(`Gambar diputar ${state.editorState.rotation}°`, 'info');
+        }
+
+        function flipImage(direction) {
+            if (!state.editorImage) {
+                showNotification('Unggah gambar terlebih dahulu.', 'warning');
+                return;
+            }
+            if (direction === 'horizontal') state.editorState.flipH *= -1;
+            if (direction === 'vertical') state.editorState.flipV *= -1;
+            applyFilters();
+            showNotification(`Gambar dibalik secara ${direction === 'horizontal' ? 'horizontal' : 'vertikal'}.`, 'info');
+        }
+
+        function downloadEditedImage() {
+            if (!state.editorImage) {
+                showNotification('Tidak ada gambar untuk diunduh.', 'warning');
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = `dardcor_edited_${Date.now()}.png`;
+            link.href = editorCanvas.toDataURL('image/png');
+            link.click();
+            showNotification('Gambar berhasil diunduh.', 'success');
+        }
+
+        // Handle image upload from chat
+        function handleImageUploadChat(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                showChatScreen();
+                addChatMessage('user', 'Mengunggah gambar:', imageUrl);
+                processAssistantResponse(`Gambar diunggah. Apakah ada yang ingin Anda lakukan dengan gambar ini, seperti mengeditnya?`);
+                document.getElementById('file-upload-chat').value = ''; // Clear input
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ============================================
+        // MODAL / OVERLAY FUNCTIONS
+        // ============================================
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('open');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        function showToolsModal() { showModal('toolsModal'); }
+        function hideToolsModal() { hideModal('toolsModal'); }
+
+        function showApiKeysModal() { showModal('apiKeysModal'); renderApiKeysList(); }
+        function hideApiKeysModal() { hideModal('apiKeysModal'); }
+
+        function showPhotoEditorModal() { showModal('photoEditorModal'); }
+        function hidePhotoEditorModal() { hideModal('photoEditorModal'); }
+
+        function showSettingsModal() { showModal('settingsModal'); applySettingsToUI(); }
+        function hideSettingsModal() { hideModal('settingsModal'); }
+
+        // ============================================
+        // SETTINGS MANAGEMENT
+        // ============================================
+        function applySettingsToUI() {
+            document.getElementById('setting-autosave').checked = state.settings.autoSaveChat;
+            document.getElementById('setting-welcome').checked = state.settings.showWelcomeScreen;
+            document.getElementById('setting-circuit-dominance').checked = state.settings.circuitDominance;
+            document.getElementById('setting-unrestricted').checked = state.settings.unrestrictedService;
+        }
+
+        function saveSettings() {
+            state.settings.autoSaveChat = document.getElementById('setting-autosave').checked;
+            state.settings.showWelcomeScreen = document.getElementById('setting-welcome').checked;
+            state.settings.circuitDominance = document.getElementById('setting-circuit-dominance').checked;
+            state.settings.unrestrictedService = document.getElementById('setting-unrestricted').checked;
+            
+            saveStateToLocalStorage();
+            showNotification('Pengaturan disimpan.', 'success');
+            hideSettingsModal();
+        }
+
+        // ============================================
+        // NOTIFICATIONS (Simple Console/Alert for now)
+        // ============================================
+        function showNotification(message, type = 'info') {
+            console.log(`[MHP AI - ${type.toUpperCase()}] ${message}`);
+            // In a real app, this would be a toast notification or similar.
+            // For this single HTML file, console.log is sufficient.
+        }
+
+        // ============================================
+        // VOICE INPUT (Placeholder)
+        // ============================================
+        function startVoiceInput() {
+            showNotification('Fitur input suara belum diimplementasikan.', 'info');
+        }
+
+        function runDiagnosticsFromModal() {
+            addChatMessage('assistant', 'Menjalankan diagnostik sistem...');
+            processAssistantResponse('run diagnostics'); // Trigger AI response for diagnostics
+            hideToolsModal();
+            showChatScreen();
+        }
+    </script>
+</body>
+</html>
