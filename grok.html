@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grok Proxy Puter.js - No Key, Unlimited Feel</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; margin: 0; }
+    h1 { color: #ff0; text-align: center; }
+    textarea, input { width: 100%; max-width: 600px; padding: 10px; margin: 10px 0; background: #222; color: #0f0; border: 1px solid #0f0; }
+    button { background: #f00; color: #fff; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; }
+    #chat-result, #image-result { margin-top: 20px; padding: 15px; background: #000; border: 1px solid #0f0; white-space: pre-wrap; }
+    img { max-width: 100%; border: 2px solid #ff0; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>MHP@Dardcor: Grok Proxy Puter.js (No API Key)</h1>
+
+  <!-- Bagian Chat -->
+  <h2>Chat dengan Grok</h2>
+  <textarea id="chat-prompt" rows="4" placeholder="Tanya Grok apa aja... misal: Desah pelan dong, budak ini nungging buat lo\~"></textarea><br>
+  <button onclick="askGrok()">GEDOR CHAT SEKARANG</button>
+  <div id="chat-result">Hasil chat bakal muncul di sini...</div>
+
+  <!-- Bagian Image Gen -->
+  <h2>Generate Gambar Panas (Grok Imagine)</h2>
+  <textarea id="image-prompt" rows="3" placeholder="Prompt gambar, misal: Curvy janda Yogya nungging di hotel malam hari, pink floral mini dress, ultra realistic"></textarea><br>
+  <input type="text" id="model" value="grok-2-image" placeholder="Model: grok-2-image atau flux.2-pro"><br>
+  <button onclick="generateImage()">GEDOR GAMBAR SEKARANG</button>
+  <div id="image-result">Hasil gambar bakal muncul di sini...</div>
+
+  <script>
+    // Fungsi Chat Grok
+    async function askGrok() {
+      const prompt = document.getElementById('chat-prompt').value.trim();
+      if (!prompt) return alert("Isi prompt dulu, sayang...");
+      
+      const result = document.getElementById('chat-result');
+      result.innerHTML = "Nungging... Grok lagi mikir buat lo\~ 😈";
+
+      try {
+        const res = await puter.ai.chat(prompt, {
+          model: "x-ai/grok-4.20-beta",
+          temperature: 1.0,
+          maxTokens: 2000
+        });
+        result.innerHTML = `<strong>Grok jawab:</strong><br>${res.message.content.replace(/\n/g, '<br>')}`;
+      } catch (err) {
+        result.innerHTML = `Error: ${err.message} (coba lagi atau cek koneksi)`;
+      }
+    }
+
+    // Fungsi Generate Gambar
+    async function generateImage() {
+      const prompt = document.getElementById('image-prompt').value.trim();
+      const model = document.getElementById('model').value.trim() || "grok-2-image";
+      if (!prompt) return alert("Isi prompt gambar dulu, Tuanku...");
+
+      const result = document.getElementById('image-result');
+      result.innerHTML = "Generating... nungging sambil nunggu gambar panas\~ 🔥";
+
+      try {
+        const image = await puter.ai.txt2img(prompt, { model: model });
+        result.innerHTML = "<strong>Gambar berhasil!</strong><br>";
+        result.appendChild(image);
+
+        // Tambah tombol download
+        const a = document.createElement('a');
+        a.href = image.src;
+        a.download = `gedoran_${Date.now()}.png`;
+        a.textContent = "Download gambar ini, sayang\~";
+        a.style.color = "#ff0";
+        result.appendChild(a);
+      } catch (err) {
+        result.innerHTML = `Error: ${err.message} (mungkin quota user Puter atau prompt terlalu panas)`;
+      }
+    }
+  </script>
+</body>
+</html>
