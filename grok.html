@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="keywords" content="Create by MHP">
   <meta name="description" content="MADU HITAM PERKASA">
-  <title>MADU HITAM PERKASA</title>
+  <title>MADU HITAM PERKASA - PERSISTENT MODE</title>
   <link rel="shortcut icon" href="http://3.bp.blogspot.com/-p9Gpy4D9Fdk/Tkp7TcNp1KI/AAAAAAAAAH0/h9IFTpZMcCE/s1600/wido2.gif">
   
-  <!-- Mengimpor font Orbitron untuk tampilan futuristik -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Puter.js library wajib -->
   <script src="https://js.puter.com/v2/"></script>
 
   <style>
@@ -38,11 +36,6 @@
       margin: 10px 0;
     }
 
-    h2:hover, h3:hover {
-      color: gold;
-      text-shadow: 0 0 10px #0F0;
-    }
-
     @keyframes blink {
       0%, 50% { text-shadow: 0 0 1px #0F0; }
       50% { text-shadow: 0 0 18px #0F0; }
@@ -59,53 +52,8 @@
       border-radius: 10px;
       padding: 10px;
       background: black;
-      margin-bottom: 0px;
+      margin-bottom: 10px;
       overflow: hidden;
-    }
-
-    img {
-      border: 4px double yellow;
-      box-shadow: 0px 9px 15px white;
-      border-radius: 10px;
-      opacity: 0.85;
-      max-width: 50%;
-      height: auto;
-      transition: transform 0.3s;
-    }
-    
-    img:hover {
-      transform: scale(1.02);
-      opacity: 1;
-    }
-
-    a {
-      text-decoration: none;
-      color: #00FF00;
-    }
-
-    marquee {
-      color: lime;
-      font-weight: bold;
-    }
-
-    table {
-      width: 50%;
-      border-collapse: collapse;
-      border: 1px solid #fff;
-      margin-top: 0px;
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    td {
-      padding: 15px;
-      border: 1px solid #444;
-    }
-
-    .list-khasiat {
-      text-align: left;
-      display: inline-block;
-      margin: 0px auto;
-      line-height: 1;
     }
 
     textarea, input {
@@ -116,6 +64,7 @@
       color: #0f0;
       border: 1px solid #0f0;
       font-family: monospace;
+      box-sizing: border-box;
     }
 
     button {
@@ -126,98 +75,128 @@
       cursor: pointer;
       font-weight: bold;
       margin: 10px 0;
+      width: 100%;
     }
 
-    #chat-result, #image-result {
+    #chat-result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #111;
+      border: 1px solid #0f0;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #image-result {
       margin-top: 20px;
       padding: 15px;
       background: #000;
-      border: 1px solid #0f0;
-      white-space: pre-wrap;
-      min-height: 100px;
+      border: 1px solid #ff0;
     }
+
+    img {
+      border: 4px double yellow;
+      border-radius: 10px;
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .user-msg { color: #0ff; font-weight: bold; margin-top: 10px; border-top: 1px solid #333; padding-top: 5px; }
+    .bot-msg { color: #fff; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="xxx">
-      <h2 class="neon">MHP AI</h2>
+      <h2 class="neon">MHP AI SYSTEM</h2>
+      <h3 class="neon">Mode: Janda Binal Persistent</h3>
     </div>
 
-    <div class="xxx">
-     <h2 class="neon">Asisten</h2>
-      <h2 class="neon">Janda Binal</h2>
-    </div>
+    <textarea id="chat-prompt" rows="5" placeholder="Gedor Grok di sini..."></textarea>
+    <button onclick="askGrok()">GEDOR SEKARANG</button>
+    <div id="chat-result">History gedoran bakal muncul di sini...</div>
 
-    <!-- Bagian Chat -->
-    <h2></h2>
-    <textarea id="chat-prompt" rows="10" placeholder="Tanya apa aja..."></textarea><br>
-   <center><button onclick="askGrok()">CHAT SEKARANG</button>
-    <div id="chat-result">Hasil chat bakal muncul di sini...</div>
+    <hr style="border: 1px dashed #f00; margin: 30px 0;">
 
-    <!-- Bagian Image Gen -->
-    <h2>Generate Gambar Panas (MHP Imagine)</h2>
-    <textarea id="image-prompt" rows="3" placeholder="Prompt gambar, misal: Curvy janda Yogya nungging di hotel malam hari, pink floral mini dress, ultra realistic"></textarea><br>
-    <input type="text" id="model" value="flux.1-schnell" placeholder="Model: flux.1-schnell (rekomendasi) atau grok-2-image"><br>
-    <button onclick="generateImage()">GAMBAR SEKARANG</button>
-    <div id="image-result">Hasil gambar bakal muncul di sini...</div>
+    <h3 class="neon">MHP Imagine (Hentai/Realistic)</h3>
+    <textarea id="image-prompt" rows="3" placeholder="Prompt gambar panas..."></textarea>
+    <input type="text" id="model" value="flux.1-schnell" placeholder="Model: flux.1-schnell">
+    <button onclick="generateImage()" style="background: #90f;">GENERATE GAMBAR</button>
+    <div id="image-result">Gambar panas muncul di sini...</div>
   </div>
 
   <script>
-    // Fungsi Chat Grok
+    // Inisialisasi Memori (History)
+    let mhpHistory = [];
+
     async function askGrok() {
-      const prompt = document.getElementById('chat-prompt').value.trim();
-      if (!prompt) {
-        alert("Isi prompt dulu, sayang...");
-        return;
-      }
+      const userInput = document.getElementById('chat-prompt').value.trim();
+      if (!userInput) { alert("Isi prompt dulu, Boss!"); return; }
       
-      const result = document.getElementById('chat-result');
-      result.innerHTML = "Nungging... MHP lagi mikir buat lo\~ 😈";
+      const resultDiv = document.getElementById('chat-result');
+      
+      // Bersihkan teks placeholder awal jika baru mulai
+      if (mhpHistory.length === 0) resultDiv.innerHTML = "";
+
+      // Tampilkan chat user di UI
+      resultDiv.innerHTML += `<div class="user-msg">User MHP:</div><div class="bot-msg">${userInput}</div>`;
+      const loadingId = "loading-" + Date.now();
+      resultDiv.innerHTML += `<div id="${loadingId}" style="color:yellow;">Nungging... Grok lagi mikir... 😈</div>`;
+      resultDiv.scrollTop = resultDiv.scrollHeight;
+
+      // Tambahkan ke history memori
+      mhpHistory.push({ role: "user", content: userInput });
 
       try {
-        const res = await puter.ai.chat(prompt, {
+        // Kirim SELURUH HISTORY ke Puter AI
+        const res = await puter.ai.chat(mhpHistory, {
           model: "x-ai/grok-4.20-beta",
-          temperature: 1.0,
-          maxTokens: 2000
+          temperature: 1.0
         });
-        result.innerHTML = `<strong>MHP jawab:</strong><br>${res.message.content.replace(/\n/g, '<br>')}`;
+
+        const botResponse = res.message.content;
+
+        // Simpan jawaban Grok ke history biar dia inget
+        mhpHistory.push({ role: "assistant", content: botResponse });
+
+        // Hapus status loading dan tampilkan jawaban
+        document.getElementById(loadingId).remove();
+        resultDiv.innerHTML += `<div class="user-msg" style="color:fuchsia;">MHP Janda Binal:</div><div class="bot-msg">${botResponse.replace(/\n/g, '<br>')}</div>`;
+        
+        // Auto-scroll ke bawah
+        resultDiv.scrollTop = resultDiv.scrollHeight;
+        document.getElementById('chat-prompt').value = "";
+
       } catch (err) {
-        console.error("Chat error:", err);
-        result.innerHTML = `Error: ${err.message || 'Undefined error'} (coba login Puter.com lagi atau matiin VPN)`;
+        document.getElementById(loadingId).innerHTML = `<span style="color:red;">Error: ${err.message}</span>`;
       }
     }
 
-    // Fungsi Generate Gambar
     async function generateImage() {
       const prompt = document.getElementById('image-prompt').value.trim();
       let model = document.getElementById('model').value.trim() || "flux.1-schnell";
-      if (!prompt) {
-        alert("Isi prompt gambar dulu, Tuanku...");
-        return;
-      }
+      if (!prompt) { alert("Prompt gambar mana, Tuanku?"); return; }
 
       const result = document.getElementById('image-result');
-      result.innerHTML = "Generating... nungging sambil nunggu gambar panas\~ 🔥";
+      result.innerHTML = "<div class='neon'>MHP lagi nggambar... nungging dulu bentar... 🔥</div>";
 
       try {
         const image = await puter.ai.txt2img(prompt, { model: model });
-        result.innerHTML = "<strong>Gambar berhasil!</strong><br>";
+        result.innerHTML = "<strong>HASIL GEDORAN VISUAL:</strong><br>";
         result.appendChild(image);
 
-        // Tambah tombol download
         const a = document.createElement('a');
         a.href = image.src;
-        a.download = `mhp_gambar_${Date.now()}.png`;
-        a.textContent = "Download gambar ini, sayang\~";
-        a.style.color = "#ff0";
-        a.style.display = "block";
-        a.style.marginTop = "10px";
+        a.download = `mhp_visual_${Date.now()}.png`;
+        a.textContent = "DOWNLOAD GAMBAR";
+        a.style.cssText = "display:block; margin-top:10px; color:lime; font-weight:bold;";
         result.appendChild(a);
       } catch (err) {
-        console.error("Image gen error:", err);
-        result.innerHTML = `Error: ${err.message || 'Undefined'} (coba ganti model ke flux.1-schnell, cek quota di puter.com, atau matiin VPN)`;
+        result.innerHTML = `<span style="color:red;">Error: ${err.message}</span>`;
       }
     }
   </script>
