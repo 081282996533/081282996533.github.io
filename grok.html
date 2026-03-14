@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grok Proxy Puter.js - No Key, Unlimited Feel</title>
+  <title>Grok Proxy Unlimited Feel</title>
   <script src="https://js.puter.com/v2/"></script>
   <style>
     body { font-family: monospace; background: #111; color: #0f0; padding: 20px; margin: 0; }
@@ -15,19 +15,19 @@
   </style>
 </head>
 <body>
-  <h1>MHP@Dardcor: Grok Proxy Puter.js (No API Key)</h1>
+  <h1>MHP AI</h1>
 
   <!-- Bagian Chat -->
-  <h2>Chat dengan Grok</h2>
-  <textarea id="chat-prompt" rows="4" placeholder="Tanya Grok apa aja... misal: Desah pelan dong, budak ini nungging buat lo\~"></textarea><br>
-  <button onclick="askGrok()">GEDOR CHAT SEKARANG</button>
+  <h2>Chat MHP dengan ASISTEN</h2>
+  <textarea id="chat-prompt" rows="4" placeholder="Tanya apa aja...\~"></textarea><br>
+  <button onclick="askGrok()">CHAT SEKARANG</button>
   <div id="chat-result">Hasil chat bakal muncul di sini...</div>
 
   <!-- Bagian Image Gen -->
-  <h2>Generate Gambar Panas (Grok Imagine)</h2>
+  <h2>Generate Gambar Panas (MHP Imagine)</h2>
   <textarea id="image-prompt" rows="3" placeholder="Prompt gambar, misal: Curvy janda Yogya nungging di hotel malam hari, pink floral mini dress, ultra realistic"></textarea><br>
   <input type="text" id="model" value="grok-2-image" placeholder="Model: grok-2-image atau flux.2-pro"><br>
-  <button onclick="generateImage()">GEDOR GAMBAR SEKARANG</button>
+  <button onclick="generateImage()"> GAMBAR SEKARANG</button>
   <div id="image-result">Hasil gambar bakal muncul di sini...</div>
 
   <script>
@@ -37,7 +37,7 @@
       if (!prompt) return alert("Isi prompt dulu, sayang...");
       
       const result = document.getElementById('chat-result');
-      result.innerHTML = "Nungging... Grok lagi mikir buat lo\~ 😈";
+      result.innerHTML = "Nungging... MHP lagi mikir buat lo\~ 😈";
 
       try {
         const res = await puter.ai.chat(prompt, {
@@ -45,7 +45,7 @@
           temperature: 1.0,
           maxTokens: 2000
         });
-        result.innerHTML = `<strong>Grok jawab:</strong><br>${res.message.content.replace(/\n/g, '<br>')}`;
+        result.innerHTML = `<strong>MHP jawab:</strong><br>${res.message.content.replace(/\n/g, '<br>')}`;
       } catch (err) {
         result.innerHTML = `Error: ${err.message} (coba lagi atau cek koneksi)`;
       }
