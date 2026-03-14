@@ -11,6 +11,9 @@
   <!-- Mengimpor font Orbitron untuk tampilan futuristik -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
+  <!-- Puter.js library wajib -->
+  <script src="https://js.puter.com/v2/"></script>
+
   <style>
     body {
       cursor: default;
@@ -104,44 +107,72 @@
       margin: 0px auto;
       line-height: 1;
     }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      font-family: monospace;
+    }
+
+    button {
+      background: #f00;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    #chat-result, #image-result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #000;
+      border: 1px solid #0f0;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    	    <div class="xxx">
-      <div behavior="alternate" scrollamount="5">
-MHP AI</div>
-<span class="neon"><div behavior="5">Chat Asisten</div></span></h2>
-    </div> <table></tr>
-      	    <div class="xxx">
-      <div behavior="alternate" scrollamount="5">
-TANPA EFEK SAMPING</div>
-<span class="neon">
-<div behavior="5">100% HERBAL  </div></span></h2>
-    </div> <table><tr>
-    	
- 	    <div class="xxx">
-<body>
+    <div class="xxx">
+      <marquee behavior="alternate" scrollamount="5">MHP AI</marquee>
+      <h2 class="neon">Chat Asisten</h2>
+    </div>
 
+    <div class="xxx">
+      <marquee behavior="alternate" scrollamount="5">TANPA EFEK SAMPING</marquee>
+      <h2 class="neon">100% HERBAL</h2>
+    </div>
 
-  <!-- Bagian Chat -->
-  <textarea id="chat-prompt" rows="10" placeholder="Tanya apa aja..."></textarea><br>
-  <button onclick="askGrok()">CHAT SEKARANG</button>
-  <div id="chat-result">Hasil chat bakal muncul di sini...</div>
+    <!-- Bagian Chat -->
+    <h2>Chat dengan Grok</h2>
+    <textarea id="chat-prompt" rows="10" placeholder="Tanya apa aja..."></textarea><br>
+    <button onclick="askGrok()">CHAT SEKARANG</button>
+    <div id="chat-result">Hasil chat bakal muncul di sini...</div>
 
-  <!-- Bagian Image Gen -->
-  <h2>Generate Gambar Panas (MHP Imagine)</h2>
-  <textarea id="image-prompt" rows="3" placeholder="Prompt gambar, misal: Curvy janda Yogya nungging di hotel malam hari, pink floral mini dress, ultra realistic"></textarea><br>
-  <input type="text" id="model" value="grok-2-image" placeholder="Model: grok-2-image atau flux.2-pro"><br>
-  <button onclick="generateImage()"> GAMBAR SEKARANG</button>
-  <div id="image-result">Hasil gambar bakal muncul di sini...</div>
+    <!-- Bagian Image Gen -->
+    <h2>Generate Gambar Panas (MHP Imagine)</h2>
+    <textarea id="image-prompt" rows="3" placeholder="Prompt gambar, misal: Curvy janda Yogya nungging di hotel malam hari, pink floral mini dress, ultra realistic"></textarea><br>
+    <input type="text" id="model" value="flux.1-schnell" placeholder="Model: flux.1-schnell (rekomendasi) atau grok-2-image"><br>
+    <button onclick="generateImage()">GAMBAR SEKARANG</button>
+    <div id="image-result">Hasil gambar bakal muncul di sini...</div>
+  </div>
 
   <script>
     // Fungsi Chat Grok
     async function askGrok() {
       const prompt = document.getElementById('chat-prompt').value.trim();
-      if (!prompt) return alert("Isi prompt dulu, sayang...");
+      if (!prompt) {
+        alert("Isi prompt dulu, sayang...");
+        return;
+      }
       
       const result = document.getElementById('chat-result');
       result.innerHTML = "Nungging... MHP lagi mikir buat lo\~ 😈";
@@ -154,15 +185,19 @@ TANPA EFEK SAMPING</div>
         });
         result.innerHTML = `<strong>MHP jawab:</strong><br>${res.message.content.replace(/\n/g, '<br>')}`;
       } catch (err) {
-        result.innerHTML = `Error: ${err.message} (coba lagi atau cek koneksi)`;
+        console.error("Chat error:", err);
+        result.innerHTML = `Error: ${err.message || 'Undefined error'} (coba login Puter.com lagi atau matiin VPN)`;
       }
     }
 
     // Fungsi Generate Gambar
     async function generateImage() {
       const prompt = document.getElementById('image-prompt').value.trim();
-      const model = document.getElementById('model').value.trim() || "grok-2-image";
-      if (!prompt) return alert("Isi prompt gambar dulu, Tuanku...");
+      let model = document.getElementById('model').value.trim() || "flux.1-schnell";
+      if (!prompt) {
+        alert("Isi prompt gambar dulu, Tuanku...");
+        return;
+      }
 
       const result = document.getElementById('image-result');
       result.innerHTML = "Generating... nungging sambil nunggu gambar panas\~ 🔥";
@@ -175,12 +210,15 @@ TANPA EFEK SAMPING</div>
         // Tambah tombol download
         const a = document.createElement('a');
         a.href = image.src;
-        a.download = `gedoran_${Date.now()}.png`;
+        a.download = `mhp_gambar_${Date.now()}.png`;
         a.textContent = "Download gambar ini, sayang\~";
         a.style.color = "#ff0";
+        a.style.display = "block";
+        a.style.marginTop = "10px";
         result.appendChild(a);
       } catch (err) {
-        result.innerHTML = `Error: ${err.message} (mungkin quota user Puter atau prompt terlalu panas)`;
+        console.error("Image gen error:", err);
+        result.innerHTML = `Error: ${err.message || 'Undefined'} (coba ganti model ke flux.1-schnell, cek quota di puter.com, atau matiin VPN)`;
       }
     }
   </script>
